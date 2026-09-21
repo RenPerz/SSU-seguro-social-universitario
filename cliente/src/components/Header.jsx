@@ -6,10 +6,11 @@ export default function Header({ seccionActiva, onCambiarSeccion }) {
   const menuOpciones = [
     { id: 'inicio', label: 'Inicio' },
     { id: 'institucional', label: 'Institucional' },
-    { id: 'medica', label: 'Área Médica' },
-    { id: 'administrativa', label: 'Área Administrativa' },
-    { id: 'transparencia', label: 'Transparencia' },
-    { id: 'normativa', label: 'Normativa' },
+    { id: 'horarios', label: 'Horarios y Disponibilidad' },
+    { id: 'fichas', label: 'Reserva de Fichas' },
+    { id: 'medicinas', label: 'Catalogo Medicamentos' },
+    { id: 'receyorde', label: 'Recetas y Ordenes' },
+    { id: 'laboratorios', label: 'Resultados de Laboratorios' },
     { id: 'biblioteca', label: 'Biblioteca SSU' },
   ];
 
