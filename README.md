@@ -1,6 +1,6 @@
 # Seguro Social Universitario (SSU) Cochabamba
 
-Aplicación web Full-Stack desarrollada para el SSU Cochabamba.
+Aplicación web de SSU por estrudiantes.
 
 ## Stack Tecnológico
 - **Frontend:** React (Vite) + JavaScript
