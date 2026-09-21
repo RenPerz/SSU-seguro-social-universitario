@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-
-import ssuLogo from '../assets/logoSSU.jpg'; 
+import React from 'react';
+import ssuLogo from '../assets/logossu.jpg';
 
 export default function Header({ seccionActiva, onCambiarSeccion }) {
   const menuOpciones = [
@@ -8,49 +7,58 @@ export default function Header({ seccionActiva, onCambiarSeccion }) {
     { id: 'institucional', label: 'Institucional' },
     { id: 'horarios', label: 'Horarios y Disponibilidad' },
     { id: 'fichas', label: 'Reserva de Fichas' },
-    { id: 'medicinas', label: 'Catalogo Medicamentos' },
-    { id: 'receyorde', label: 'Recetas y Ordenes' },
+    { id: 'medicinas', label: 'Catálogo Medicamentos' },
+    { id: 'receyorde', label: 'Recetas y Órdenes' },
     { id: 'laboratorios', label: 'Resultados de Laboratorios' },
     { id: 'biblioteca', label: 'Biblioteca SSU' },
   ];
 
   return (
     <header style={{ width: '100%', backgroundColor: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.06)' }}>
-      
+      {/* Barra superior */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 30px', borderBottom: '1px solid #e2e8f0' }}>
+        <input 
+          type="text" 
+          placeholder="Buscar..." 
+          style={{
+            padding: '5px 12px',
+            borderRadius: '20px',
+            border: '1px solid #cbd5e1',
+            fontSize: '13px',
+            outline: 'none'
+          }}
+        />
+      </div>
 
-      {/* Cabecera institucional con Logo y Títulos */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 30px' }}>
+      {/* Cabecera principal con logo */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 30px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-          
           <img 
             src={ssuLogo} 
             alt="Logo Seguro Social Universitario" 
             style={{
-              width: 'auto',   
-              height: '150px',  
+              width: 'auto',
+              height: '60px',
               display: 'block',
-              objectFit: 'contain' 
+              objectFit: 'contain'
             }}
           />
-          {/* ------------------------------------ */}
-
           <div>
-            <h1 style={{ fontSize: '40px', fontWeight: '800', color: '#003770', margin: 0, lineHeight: 1.1 }}>
+            <h1 style={{ fontSize: '28px', fontWeight: '800', color: '#0f172a', margin: 0, lineHeight: 1.1 }}>
               SSU
             </h1>
-            <p style={{ fontSize: '28px', fontWeight: '500', color: '#003770', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '17px', fontWeight: '500', color: '#334155', margin: '4px 0 0 0' }}>
               Seguro Social Universitario Cochabamba
             </p>
           </div>
         </div>
 
-        {/* Marcador territorial decorativo */}
-        <span style={{ fontSize: '28px', fontWeight: '700', color: '#003770', letterSpacing: '1px' }}>
+        <span style={{ fontSize: '13px', fontWeight: '700', color: '#b91c1c', letterSpacing: '1px' }}>
           COCHABAMBA - BOLIVIA
         </span>
       </div>
 
-      {/* Menú de Botones / Secciones */}
+      {/* Barra de navegación */}
       <nav style={{ backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0', borderBottom: '2px solid #0284c7' }}>
         <ul style={{ display: 'flex', listStyle: 'none', margin: 0, padding: '0 25px', gap: '4px', overflowX: 'auto' }}>
           {menuOpciones.map((opcion) => {
