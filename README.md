@@ -1,18 +1,38 @@
-# SSU
+# Seguro Social Universitario (SSU) Cochabamba
 
-Aplicación web Full-Stack con Node.js, Express, React y MySQL.
+Aplicación web Full-Stack desarrollada para el SSU Cochabamba.
 
-## Requisitos
-- Node.js (v18+)
-- Servidor MySQL y MySQL Workbench
+## Stack Tecnológico
+- **Frontend:** React (Vite) + JavaScript
+- **Backend:** Python (FastAPI) + Uvicorn
+- **Base de Datos:** MySQL
 
-## Instrucciones de Ejecución
+---
+
+## Requisitos Previos
+- [Node.js](https://nodejs.org/) (v18 o superior)
+- [Python](https://www.python.org/) (v3.10 o superior)
+- MySQL Server y MySQL Workbench
+
+---
+
+## Guía de Ejecución Local
 
 ### 1. Base de Datos
-- Ejecutar el script SQL en MySQL Workbench.
+- Crear y configurar la base de datos en MySQL Workbench según las credenciales del backend.
 
-### 2. Backend (Servidor)
+### 2. Backend (Servidor - Python)
+Desde la raíz del proyecto:
 ```bash
 cd servidor
-npm install
-node index.js
+# Crear entorno virtual (solo la primera vez)
+python -m venv venv
+
+# Activar entorno virtual en Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Iniciar el servidor
+uvicorn main:app --reload --port 8000
