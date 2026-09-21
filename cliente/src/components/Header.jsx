@@ -15,20 +15,7 @@ export default function Header({ seccionActiva, onCambiarSeccion }) {
 
   return (
     <header style={{ width: '100%', backgroundColor: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.06)' }}>
-      {/* Barra superior */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 30px', borderBottom: '1px solid #e2e8f0' }}>
-        <input 
-          type="text" 
-          placeholder="Buscar..." 
-          style={{
-            padding: '5px 12px',
-            borderRadius: '20px',
-            border: '1px solid #cbd5e1',
-            fontSize: '13px',
-            outline: 'none'
-          }}
-        />
-      </div>
+      
 
       {/* Cabecera principal con logo */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 30px' }}>
