@@ -12,7 +12,6 @@ export default function Header({ seccionActiva, onCambiarSeccion }) {
     { id: 'receyorde', label: 'Recetas y Ordenes' },
     { id: 'laboratorios', label: 'Resultados de Laboratorios' },
     { id: 'biblioteca', label: 'Biblioteca SSU' },
-    { id: 'derivaciones', label: 'Derivaciones Médicas' },
   ];
 
   return (

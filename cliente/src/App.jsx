@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
-import Derivaciones from './components/Derivaciones';
+import CatalogoMedicamentos from './components/CatalogoMedicamentos';
 
 export default function App() {
   const [seccion, setSeccion] = useState('inicio');
@@ -56,16 +56,7 @@ export default function App() {
         );
 
       case 'medicinas':
-        return (
-          <div>
-            <h2 style={{ fontSize: '22px', color: '#0f172a', marginBottom: '10px' }}>
-              Catálogo de Medicamentos
-            </h2>
-            <p style={{ color: '#475569', lineHeight: '1.6' }}>
-              Consulta de stock y vademécum de la farmacia institucional.
-            </p>
-          </div>
-        );
+        return <CatalogoMedicamentos />;
 
       case 'receyorde':
         return (
@@ -102,9 +93,6 @@ export default function App() {
             </p>
           </div>
         );
-
-      case 'derivaciones':
-        return <Derivaciones />;
 
       default:
         return <p>Seleccione una opción del menú.</p>;
