@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
 import CatalogoMedicamentos from './components/CatalogoMedicamentos';
+import Derivaciones from './components/Derivaciones';
+
 
 export default function App() {
   const [seccion, setSeccion] = useState('inicio');
@@ -93,6 +95,12 @@ export default function App() {
             </p>
           </div>
         );
+        
+        case 'derivaciones':
+        return <Derivaciones />;
+
+      default:
+        return <p>Seleccione una opción del menú.</p>;
 
       default:
         return <p>Seleccione una opción del menú.</p>;
