@@ -236,6 +236,42 @@ def cancelar_cita(id_cita: int):
     except Exception as e:
         conexion.rollback()
         return {"error": str(e)}
+
+
+@app.get("/api/derivaciones/paciente/{id_paciente}")
+def obtener_derivaciones_paciente(id_paciente: int):
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor(dictionary=True)
+        
+        sql = """SELECT 
+                    id_derivacion AS id, 
+                    id_paciente, 
+                    id_doctor_origen, 
+                    institucion_destino AS centro_destino, 
+                    motivo, 
+                    DATE_FORMAT(fecha_derivacion, '%Y-%m-%d') AS fecha_solicitud, 
+                    estado,
+                    observaciones 
+                 FROM derivaciones 
+                 WHERE id_paciente = %s 
+                 ORDER BY fecha_derivacion DESC"""
+                 
+        cursor.execute(sql, (id_paciente,))
+        resultados = cursor.fetchall()
+        
+        return resultados
+    
+    except Exception as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=f"Error BD: {e}")
+    
+    finally:
+        if 'conexion' in locals() and conexion.is_connected():
+            cursor.close()
+            conexion.close()
+
+    
     finally:
         cursor.close()
         conexion.close()
