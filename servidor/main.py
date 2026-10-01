@@ -275,3 +275,39 @@ def obtener_derivaciones_paciente(id_paciente: int):
     finally:
         cursor.close()
         conexion.close()
+
+
+@app.get("/api/bajas-medicas")
+def obtener_bajas_medicas():
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor(dictionary=True)
+
+        sql = """SELECT 
+                    id,
+                    nro_certificado,
+                    paciente,
+                    matricula,
+                    doctor,
+                    especialidad,
+                    tipo_baja,
+                    dias_incapacidad,
+                    DATE_FORMAT(fecha_inicio, '%d/%m/%Y') AS fecha_inicio,
+                    DATE_FORMAT(fecha_fin, '%d/%m/%Y') AS fecha_fin,
+                    diagnostico,
+                    estado
+                FROM bajas_medicas
+                ORDER BY id DESC"""
+
+        cursor.execute(sql)
+        resultados = cursor.fetchall()
+
+        return resultados
+
+    except Exception as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=f"Error BD: {e}")
+    finally:
+        if 'conexion' in locals() and conexion.is_connected():
+            cursor.close()
+            conexion.close()  
