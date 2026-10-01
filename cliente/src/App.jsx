@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import Header from './components/Header';
+import AuthScreen from './components/AuthScreen';
 import Sidebar from './components/Sidebar';
 import StatCard from './components/StatCard';
 import { api } from './services/api';
 
 const initialForm = {
-  usuario_id: 101,
   especialidad: '',
   profesional: '',
   fecha: '',
@@ -43,6 +43,13 @@ const formatTime = (value) => {
 const getStatusClass = (status) => `status-pill status-pill--${status.toLowerCase()}`;
 
 export default function App() {
+  const [session, setSession] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem('ssu_session'));
+    } catch {
+      return null;
+    }
+  });
   const [activeSection, setActiveSection] = useState('inicio');
   const [appointments, setAppointments] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState('TODAS');
@@ -77,9 +84,23 @@ export default function App() {
   };
 
   useEffect(() => {
+    const handleUnauthorized = () => setSession(null);
+    window.addEventListener('ssu:unauthorized', handleUnauthorized);
+    if (!session) return () => window.removeEventListener('ssu:unauthorized', handleUnauthorized);
     loadAppointments();
     loadReminderSettings();
-  }, []);
+    return () => window.removeEventListener('ssu:unauthorized', handleUnauthorized);
+  }, [session]);
+
+  const handleAuthenticated = (nextSession) => {
+    sessionStorage.setItem('ssu_session', JSON.stringify(nextSession));
+    setSession(nextSession);
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('ssu_session');
+    setSession(null);
+  };
 
   const upcomingAppointment = useMemo(() => {
     const valid = appointments
@@ -117,7 +138,6 @@ export default function App() {
     try {
       const payload = {
         ...formData,
-        usuario_id: Number(formData.usuario_id || 101),
         estado: 'PENDIENTE',
         lugar: 'Seguro Social Universitario',
       };
@@ -132,6 +152,10 @@ export default function App() {
       setLoading(false);
     }
   };
+
+  if (!session?.user) {
+    return <AuthScreen onAuthenticated={handleAuthenticated} />;
+  }
 
   const handleCancel = async (appointmentId) => {
     const confirmCancel = window.confirm('¿Estás seguro de que deseas cancelar esta cita?');
@@ -179,12 +203,13 @@ export default function App() {
           <section className="hero-panel">
             <div>
               <p className="eyebrow">Sistema universitario</p>
-              <h1>Mis citas</h1>
+              <h1>Hola, {session.user.nombres}</h1>
               <p className="section-subtitle">Gestión rápida de turnos, recordatorios y atención médica.</p>
             </div>
-            <button type="button" className="primary-button" onClick={() => setActiveSection('citas')}>
-              Ver agenda
-            </button>
+            <div className="hero-actions">
+              <button type="button" className="primary-button" onClick={() => setActiveSection('citas')}>Ver agenda</button>
+              <button type="button" className="secondary-button secondary-button--dark" onClick={handleLogout}>Cerrar sesión</button>
+            </div>
           </section>
 
           <div className="stats-grid">
@@ -265,11 +290,6 @@ export default function App() {
               </div>
 
               <form className="appointment-form" onSubmit={handleSubmit}>
-                <div className="field-group">
-                  <label htmlFor="usuario_id">Usuario</label>
-                  <input id="usuario_id" name="usuario_id" type="number" min="1" value={formData.usuario_id} onChange={handleInput} />
-                </div>
-
                 <div className="field-group">
                   <label htmlFor="especialidad">Especialidad</label>
                   <input id="especialidad" name="especialidad" type="text" placeholder="Ej. Medicina General" value={formData.especialidad} onChange={handleInput} />

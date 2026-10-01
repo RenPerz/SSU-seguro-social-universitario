@@ -8,8 +8,12 @@ CREATE TABLE IF NOT EXISTS usuarios (
     ci VARCHAR(20) NOT NULL,
     email VARCHAR(120) NOT NULL,
     telefono VARCHAR(30) NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    rol ENUM('estudiante', 'medico', 'administrador') NOT NULL DEFAULT 'estudiante',
+    estado ENUM('ACTIVO', 'INACTIVO') NOT NULL DEFAULT 'ACTIVO',
     tipo_usuario VARCHAR(30) NOT NULL DEFAULT 'estudiante',
     fecha_nacimiento DATE NULL,
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id_usuario),
@@ -93,9 +97,11 @@ INSERT INTO profesionales (id_especialidad, nombres, apellidos, titulo, telefono
 (3, 'Luis', 'Ramos', 'Cardiólogo', '70345678', 'ACTIVO')
 ON DUPLICATE KEY UPDATE nombres = VALUES(nombres);
 
-INSERT INTO usuarios (nombres, apellidos, ci, email, telefono, tipo_usuario, fecha_nacimiento) VALUES
-('María', 'Pérez', '1234567', 'maria.perez@universitario.bo', '70987654', 'estudiante', '2001-05-14'),
-('José', 'García', '7654321', 'jose.garcia@universitario.bo', '70123459', 'estudiante', '2000-11-25')
+-- Los usuarios reales deben registrarse mediante POST /api/auth/register.
+-- Nunca se insertan contraseñas en texto plano en este script.
+INSERT INTO usuarios (nombres, apellidos, ci, email, telefono, password_hash, rol, estado, tipo_usuario, fecha_nacimiento) VALUES
+('María', 'Pérez', '1234567', 'maria.perez@universitario.bo', '70987654', '$argon2id$v=19$m=65536,t=3,p=4$YwBdL0VH8lnRR1+FYDTZzA$ayNrTC0Ill9rpRiTmDYzV3EFcqV6/WZzYRTnMvkwRCI', 'estudiante', 'ACTIVO', 'estudiante', '2001-05-14'),
+('José', 'García', '7654321', 'jose.garcia@universitario.bo', '70123459', '$argon2id$v=19$m=65536,t=3,p=4$YwBdL0VH8lnRR1+FYDTZzA$ayNrTC0Ill9rpRiTmDYzV3EFcqV6/WZzYRTnMvkwRCI', 'estudiante', 'ACTIVO', 'estudiante', '2000-11-25')
 ON DUPLICATE KEY UPDATE email = VALUES(email);
 
 INSERT INTO citas (id_usuario, id_profesional, fecha, hora, motivo, estado, lugar) VALUES

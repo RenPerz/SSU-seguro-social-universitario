@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database.connection import get_db_status
+from app.routes.auth import router as auth_router
 from app.routes.citas import router as citas_router
 from app.routes.db import router as db_router
 from app.routes.recordatorios import router as recordatorios_router
@@ -28,6 +29,7 @@ app.add_middleware(
 app.include_router(citas_router)
 app.include_router(recordatorios_router)
 app.include_router(db_router)
+app.include_router(auth_router)
 
 
 @app.get("/")

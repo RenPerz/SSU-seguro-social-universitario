@@ -37,3 +37,5 @@ recordatorios_db = [
         "activo": True,
     },
 ]
+
+usuarios_db = []

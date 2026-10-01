@@ -1,12 +1,18 @@
 const API_BASE_URL = 'http://127.0.0.1:8000';
 
 async function request(endpoint, { method = 'GET', body } = {}) {
+  const session = sessionStorage.getItem('ssu_session');
   const options = {
     method,
     headers: {
       'Content-Type': 'application/json',
     },
   };
+
+  if (session) {
+    const { access_token: accessToken } = JSON.parse(session);
+    options.headers.Authorization = `Bearer ${accessToken}`;
+  }
 
   if (body !== undefined) {
     options.body = JSON.stringify(body);
@@ -21,13 +27,20 @@ async function request(endpoint, { method = 'GET', body } = {}) {
   const payload = await response.json();
 
   if (!response.ok) {
-    throw new Error(payload.detail || 'No se pudo completar la solicitud.');
+    if (response.status === 401) {
+      sessionStorage.removeItem('ssu_session');
+      window.dispatchEvent(new Event('ssu:unauthorized'));
+    }
+    const detail = typeof payload.detail === 'string' ? payload.detail : 'No se pudo completar la solicitud.';
+    throw new Error(detail);
   }
 
   return payload;
 }
 
 export const api = {
+  login: (data) => request('/api/auth/login', { method: 'POST', body: data }),
+  register: (data) => request('/api/auth/register', { method: 'POST', body: data }),
   getCitas: () => request('/api/citas'),
   createCita: (data) => request('/api/citas', { method: 'POST', body: data }),
   updateCita: (id, data) => request(`/api/citas/${id}`, { method: 'PUT', body: data }),
