@@ -1,59 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AZUL = '#003770';
 const ROJO = '#E30613';
 const BLANCO = '#FFFFFF';
 const GRIS_BORDE = '#e2e8f0';
+const API_URL = 'http://127.0.0.1:8000';
 
 export default function ResultadosLaboratorio() {
   const [busqueda, setBusqueda] = useState('');
-  const [resultados] = useState([
-    {
-      id: 1,
-      paciente: 'Juan Pérez Mamani',
-      ci: '8765432',
-      examen: 'Hemograma completo',
-      fecha: '2026-09-28',
-      estado: 'listo',
-      resultado: 'Valores dentro del rango normal',
-    },
-    {
-      id: 2,
-      paciente: 'María Quispe Rojas',
-      ci: '7654321',
-      examen: 'Glucosa en ayunas',
-      fecha: '2026-09-29',
-      estado: 'pendiente',
-      resultado: '-',
-    },
-    {
-      id: 3,
-      paciente: 'Carlos Choque Villca',
-      ci: '6543210',
-      examen: 'Perfil lipídico',
-      fecha: '2026-09-29',
-      estado: 'listo',
-      resultado: 'Colesterol elevado (220 mg/dL)',
-    },
-  ]);
+  const [resultados, setResultados] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
 
-  const filtrados = resultados.filter(
-    (r) =>
-      r.paciente.toLowerCase().includes(busqueda.toLowerCase()) ||
-      r.ci.includes(busqueda) ||
-      r.examen.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  // Cargar resultados desde el backend
+  const cargarResultados = async (termino = '') => {
+    setCargando(true);
+    setError(null);
+    try {
+      const url = termino
+        ? `${API_URL}/api/laboratorios?q=${encodeURIComponent(termino)}`
+        : `${API_URL}/api/laboratorios`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+      const data = await res.json();
+      setResultados(data);
+    } catch (e) {
+      setError(e.message);
+      setResultados([]);
+    } finally {
+      setCargando(false);
+    }
+  };
 
-  const estiloBadge = (estado) => ({
-    display: 'inline-block',
-    padding: '3px 10px',
-    borderRadius: '20px',
-    fontSize: '11px',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    backgroundColor: estado === 'listo' ? '#d1e7dd' : '#fff3cd',
-    color: estado === 'listo' ? '#0f5132' : '#856404',
-  });
+  // Carga inicial
+  useEffect(() => {
+    cargarResultados();
+  }, []);
+
+  // Buscar con debounce (300 ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      cargarResultados(busqueda);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [busqueda]);
+
+  const estiloBadge = (estado) => {
+    const estilos = {
+      listo: { bg: '#d1e7dd', color: '#0f5132' },
+      entregado: { bg: '#cfe2ff', color: '#084298' },
+      en_proceso: { bg: '#fff3cd', color: '#856404' },
+      pendiente: { bg: '#fff3cd', color: '#856404' },
+    };
+    const s = estilos[estado] || estilos.pendiente;
+    return {
+      display: 'inline-block',
+      padding: '3px 10px',
+      borderRadius: '20px',
+      fontSize: '11px',
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      backgroundColor: s.bg,
+      color: s.color,
+    };
+  };
 
   return (
     <div>
@@ -96,8 +106,16 @@ export default function ResultadosLaboratorio() {
         </button>
       </div>
 
-      {/* Tabla */}
-      {filtrados.length === 0 ? (
+      {/* Estados: cargando / error / tabla */}
+      {cargando ? (
+        <p style={{ textAlign: 'center', color: '#64748b', padding: '30px' }}>
+          Cargando resultados...
+        </p>
+      ) : error ? (
+        <p style={{ textAlign: 'center', color: ROJO, padding: '30px' }}>
+          Error al cargar: {error}
+        </p>
+      ) : resultados.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#64748b', padding: '30px', fontStyle: 'italic' }}>
           No se encontraron resultados.
         </p>
@@ -115,7 +133,7 @@ export default function ResultadosLaboratorio() {
               </tr>
             </thead>
             <tbody>
-              {filtrados.map((r) => (
+              {resultados.map((r) => (
                 <tr key={r.id} style={{ borderBottom: `1px solid ${GRIS_BORDE}` }}>
                   <td style={tdStyle}>{r.paciente}</td>
                   <td style={tdStyle}>{r.ci}</td>
