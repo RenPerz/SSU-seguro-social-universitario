@@ -14,6 +14,7 @@ export default function Header({ seccionActiva, onCambiarSeccion }) {
     { id: 'sobreturnos', label: 'Sobreturnos y Emergencias' },
     { id: 'derivaciones', label: 'Derivaciones Médicas' },
     { id: 'biblioteca', label: 'Biblioteca SSU' },
+    { id: 'bajas_medicas', label: 'Bajas Médicas' },
   ];
 
   return (
