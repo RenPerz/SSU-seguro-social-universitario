@@ -7,6 +7,7 @@ import Inicio from './components/Inicio';
 import ResultadosLaboratorio from './components/ResultadosLaboratorio';
 import GestionSobreturnosEmergencias from './components/GestionSobreturnosEmergencias';
 import ReservaFichas from './components/ReservaFichas';
+import RecetasyOrdenes from './components/Recetas y Ordenes';
 
 export default function App() {
   const [seccion, setSeccion] = useState('inicio');
@@ -38,16 +39,8 @@ export default function App() {
         return <CatalogoMedicamentos />;
 
       case 'receyorde':
-        return (
-          <div>
-            <h2 style={{ fontSize: '22px', color: '#0f172a', marginBottom: '10px' }}>
-              Recetas y Órdenes Médicas
-            </h2>
-            <p style={{ color: '#475569', lineHeight: '1.6' }}>
-              Historial de recetas prescritas y órdenes de exámenes complementarios emitidas.
-            </p>
-          </div>
-        );
+        return <RecetasyOrdenes />;
+        
 
       // 👇 NUEVA: Resultados de Laboratorio (componente real)
       case 'laboratorios':
@@ -68,6 +61,9 @@ export default function App() {
             </p>
           </div>
         );
+
+        case 'bajas_medicas':   
+      return <BajasMedicas />;  
 
       case 'derivaciones':
         return <Derivaciones />;
