@@ -4,7 +4,8 @@ import CatalogoMedicamentos from './components/CatalogoMedicamentos';
 import Derivaciones from './components/Derivaciones';
 import Institucional from './components/Institucional';
 import Inicio from './components/Inicio';
-
+import ResultadosLaboratorio from './components/ResultadosLaboratorio';
+import GestionSobreturnosEmergencias from './components/GestionSobreturnosEmergencias';
 
 export default function App() {
   const [seccion, setSeccion] = useState('inicio');
@@ -15,7 +16,7 @@ export default function App() {
         return <Inicio />;
 
       case 'institucional':
-        return  <Institucional />;
+        return <Institucional />;
 
       case 'horarios':
         return (
@@ -56,17 +57,13 @@ export default function App() {
           </div>
         );
 
+      // 👇 NUEVA: Resultados de Laboratorio (componente real)
       case 'laboratorios':
-        return (
-          <div>
-            <h2 style={{ fontSize: '22px', color: '#0f172a', marginBottom: '10px' }}>
-              Resultados de Laboratorios
-            </h2>
-            <p style={{ color: '#475569', lineHeight: '1.6' }}>
-              Visualización y descarga de informes de análisis clínicos e imagenología.
-            </p>
-          </div>
-        );
+        return <ResultadosLaboratorio />;
+
+      // 👇 NUEVA: Sobreturnos y Emergencias
+      case 'sobreturnos':
+        return <GestionSobreturnosEmergencias />;
 
       case 'biblioteca':
         return (
@@ -79,14 +76,12 @@ export default function App() {
             </p>
           </div>
         );
-        
+
       case 'derivaciones':
-      return <Derivaciones />;
+        return <Derivaciones />;
 
       default:
         return <p>Seleccione una opción del menú.</p>;
-
-     
     }
   };
 
@@ -95,13 +90,15 @@ export default function App() {
       <Header seccionActiva={seccion} onCambiarSeccion={setSeccion} />
 
       <main style={{ flex: 1, padding: '30px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
-        <section style={{ 
-          backgroundColor: '#ffffff', 
-          padding: '30px', 
-          borderRadius: '8px', 
-          border: '1px solid #e2e8f0', 
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)' 
-        }}>
+        <section
+          style={{
+            backgroundColor: '#ffffff',
+            padding: '30px',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          }}
+        >
           {renderizarContenido()}
         </section>
       </main>

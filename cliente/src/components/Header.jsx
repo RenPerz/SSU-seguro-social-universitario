@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import ssuLogo from '../assets/logoSSU.jpg'; 
+import ssuLogo from '../assets/logoSSU.jpg';
 
 export default function Header({ seccionActiva, onCambiarSeccion }) {
   const menuOpciones = [
@@ -11,26 +11,27 @@ export default function Header({ seccionActiva, onCambiarSeccion }) {
     { id: 'medicinas', label: 'Catalogo Medicamentos' },
     { id: 'receyorde', label: 'Recetas y Ordenes' },
     { id: 'laboratorios', label: 'Resultados de Laboratorios' },
-    {id: 'derivaciones', label: 'Derivaciones Médicas' },
+    { id: 'sobreturnos', label: 'Sobreturnos y Emergencias' },
+    { id: 'derivaciones', label: 'Derivaciones Médicas' },
     { id: 'biblioteca', label: 'Biblioteca SSU' },
   ];
 
   return (
     <header style={{ width: '100%', backgroundColor: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.06)' }}>
-      
+
 
       {/* Cabecera institucional con Logo y Títulos */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 30px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-          
-          <img 
-            src={ssuLogo} 
-            alt="Logo Seguro Social Universitario" 
+
+          <img
+            src={ssuLogo}
+            alt="Logo Seguro Social Universitario"
             style={{
-              width: 'auto',   
-              height: '150px',  
+              width: 'auto',
+              height: '150px',
               display: 'block',
-              objectFit: 'contain' 
+              objectFit: 'contain'
             }}
           />
           {/* ------------------------------------ */}
