@@ -720,6 +720,119 @@ img {
   text-align: center;
 }
 
+.history-sort {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--neutral-500);
+  font-size: 0.88rem;
+}
+
+.history-sort select {
+  min-height: 2.6rem;
+  border: 1px solid var(--neutral-300);
+  border-radius: 0.6rem;
+  padding: 0.45rem 0.65rem;
+  background: white;
+  color: var(--neutral-900);
+}
+
+.history-list {
+  margin-top: 1rem;
+}
+
+.notification-list {
+  display: grid;
+}
+
+.notification-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.notification-item:first-child {
+  border-top: 1px solid var(--neutral-200);
+}
+
+.notification-item--unread {
+  background: linear-gradient(90deg, #eff8ff, transparent);
+}
+
+.notification-item__icon {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--primary-100);
+  color: var(--primary-700);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.notification-item__icon--confirmacion {
+  background: #dcfce7;
+  color: var(--success-500);
+}
+
+.notification-item__icon--cancelacion {
+  background: #fee2e2;
+  color: var(--danger-500);
+}
+
+.notification-item__content {
+  min-width: 0;
+}
+
+.notification-item__heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.notification-item h3,
+.notification-item p {
+  margin: 0;
+}
+
+.notification-item h3 {
+  font-size: 1rem;
+}
+
+.notification-item p {
+  margin-top: 0.3rem;
+  color: var(--neutral-700);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.notification-item time {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--neutral-500);
+  font-size: 0.8rem;
+}
+
+.notification-unread-label {
+  color: var(--primary-700);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.notification-read-button {
+  border: 0;
+  background: transparent;
+  color: var(--primary-700);
+  font-weight: 700;
+  text-align: right;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -789,5 +902,19 @@ img {
   .panel-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .history-sort {
+    flex-wrap: wrap;
+  }
+
+  .notification-item {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .notification-read-button {
+    grid-column: 2;
+    text-align: left;
   }
 }

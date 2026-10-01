@@ -6,6 +6,7 @@ from app.routes.auth import router as auth_router
 from app.routes.citas import router as citas_router
 from app.routes.db import router as db_router
 from app.routes.recordatorios import router as recordatorios_router
+from app.routes.notificaciones import router as notificaciones_router
 
 app = FastAPI(
     title="Seguro Social Universitario API",
@@ -30,6 +31,7 @@ app.include_router(citas_router)
 app.include_router(recordatorios_router)
 app.include_router(db_router)
 app.include_router(auth_router)
+app.include_router(notificaciones_router)
 
 
 @app.get("/")

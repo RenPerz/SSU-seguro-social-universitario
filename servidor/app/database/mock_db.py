@@ -38,4 +38,6 @@ recordatorios_db = [
     },
 ]
 
+notificaciones_db = []
+
 usuarios_db = []

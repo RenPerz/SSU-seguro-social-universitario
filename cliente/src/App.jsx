@@ -27,6 +27,13 @@ const reminderOptions = [
 ];
 
 const filterOptions = ['TODAS', 'CONFIRMADA', 'PENDIENTE', 'CANCELADA'];
+const historyFilterOptions = ['TODAS', 'ATENDIDA', 'CANCELADA', 'NO_ASISTIO'];
+
+const historyStatusLabel = (status) => ({
+  ATENDIDA: 'Atendida',
+  CANCELADA: 'Cancelada',
+  NO_ASISTIO: 'No asistió',
+}[status] || status);
 
 const formatDate = (value) => {
   if (!value) return 'Sin fecha';
@@ -59,6 +66,11 @@ export default function App() {
   });
   const [activeSection, setActiveSection] = useState('inicio');
   const [appointments, setAppointments] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [historyFilter, setHistoryFilter] = useState('TODAS');
+  const [historyOrder, setHistoryOrder] = useState('DESC');
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('TODAS');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [formData, setFormData] = useState(initialForm);
@@ -76,6 +88,25 @@ export default function App() {
       setAppointments(data);
     } catch (error) {
       setErrorMessage(error.message || 'No se pudieron cargar las citas.');
+    }
+  };
+
+  const loadHistory = async () => {
+    try {
+      setHistory(await api.getHistorial());
+    } catch (error) {
+      setErrorMessage(error.message || 'No se pudo cargar el historial.');
+    }
+  };
+
+  const loadNotifications = async () => {
+    setNotificationsLoading(true);
+    try {
+      setNotifications(await api.getNotificaciones());
+    } catch (error) {
+      setErrorMessage(error.message || 'No se pudieron cargar las notificaciones.');
+    } finally {
+      setNotificationsLoading(false);
     }
   };
 
@@ -112,6 +143,8 @@ export default function App() {
     window.addEventListener('ssu:unauthorized', handleUnauthorized);
     if (!session) return () => window.removeEventListener('ssu:unauthorized', handleUnauthorized);
     loadAppointments();
+    loadHistory();
+    loadNotifications();
     loadReminderSettings();
     loadProfile();
     return () => window.removeEventListener('ssu:unauthorized', handleUnauthorized);
@@ -194,6 +227,7 @@ export default function App() {
       setFormData(initialForm);
       setMessage('✓ Cita registrada correctamente.');
       await loadAppointments();
+      await loadNotifications();
     } catch (error) {
       setErrorMessage(error.message || '⚠ No se pudo registrar la cita.');
     } finally {
@@ -214,6 +248,7 @@ export default function App() {
       setMessage('✓ Cita cancelada correctamente.');
       setSelectedAppointment(null);
       await loadAppointments();
+      await loadNotifications();
     } catch (error) {
       setErrorMessage(error.message || '⚠ No se pudo cancelar la cita.');
     }
@@ -239,6 +274,34 @@ export default function App() {
       setErrorMessage(error.message || '⚠ No se pudo guardar la configuración de recordatorios.');
     }
   };
+
+  const handleMarkNotificationRead = async (notificationId) => {
+    try {
+      await api.markNotificationRead(notificationId);
+      setNotifications((current) => current.map((item) => (
+        item.id === notificationId ? { ...item, leida: true } : item
+      )));
+    } catch (error) {
+      setErrorMessage(error.message || 'No se pudo actualizar la notificación.');
+    }
+  };
+
+  const handleMarkAllNotificationsRead = async () => {
+    try {
+      await api.markAllNotificationsRead();
+      setNotifications((current) => current.map((item) => ({ ...item, leida: true })));
+      setMessage('✓ Todas las notificaciones fueron marcadas como leídas.');
+    } catch (error) {
+      setErrorMessage(error.message || 'No se pudieron actualizar las notificaciones.');
+    }
+  };
+
+  const filteredHistory = history
+    .filter((appointment) => historyFilter === 'TODAS' || appointment.estado === historyFilter)
+    .sort((first, second) => {
+      const comparison = new Date(`${first.fecha}T${first.hora}`) - new Date(`${second.fecha}T${second.hora}`);
+      return historyOrder === 'DESC' ? -comparison : comparison;
+    });
 
   return (
     <div className="app-shell">
@@ -275,6 +338,105 @@ export default function App() {
           {message && <div className="feedback feedback--success">{message}</div>}
           {errorMessage && <div className="feedback feedback--error">{errorMessage}</div>}
 
+          {activeSection === 'historial' && (
+            <section className="content-panel">
+              <div className="panel-header">
+                <div>
+                  <p className="eyebrow eyebrow--dark">Atenciones anteriores</p>
+                  <h2>Historial de citas</h2>
+                </div>
+                <label className="history-sort">
+                  Ordenar por fecha
+                  <select value={historyOrder} onChange={(event) => setHistoryOrder(event.target.value)}>
+                    <option value="DESC">Más recientes</option>
+                    <option value="ASC">Más antiguas</option>
+                  </select>
+                </label>
+              </div>
+              <div className="filter-row" aria-label="Filtrar historial">
+                {historyFilterOptions.map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    className={`filter-button ${historyFilter === filter ? 'is-active' : ''}`}
+                    onClick={() => setHistoryFilter(filter)}
+                  >
+                    {filter === 'NO_ASISTIO' ? 'NO ASISTIÓ' : filter}
+                  </button>
+                ))}
+              </div>
+              <div className="appointments-list history-list">
+                {filteredHistory.length === 0 ? (
+                  <div className="empty-state">No tienes citas en el historial para este filtro.</div>
+                ) : filteredHistory.map((appointment) => (
+                  <article className="appointment-card" key={appointment.id}>
+                    <div className="appointment-card__top">
+                      <div>
+                        <p className="appointment-card__date">{formatDate(appointment.fecha)} · {formatTime(appointment.hora)}</p>
+                        <h3>{appointment.especialidad}</h3>
+                      </div>
+                      <span className={getStatusClass(appointment.estado)}>{historyStatusLabel(appointment.estado)}</span>
+                    </div>
+                    <div className="appointment-card__body">
+                      <div><strong>{appointment.profesional}</strong><p>{appointment.lugar}</p></div>
+                      <div><span>Motivo</span><p>{appointment.motivo}</p></div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {activeSection === 'notificaciones' && (
+            <section className="content-panel">
+              <div className="panel-header">
+                <div>
+                  <p className="eyebrow eyebrow--dark">Avisos personales</p>
+                  <h2>Notificaciones</h2>
+                </div>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={handleMarkAllNotificationsRead}
+                  disabled={!notifications.some((item) => !item.leida)}
+                >
+                  Marcar todas como leídas
+                </button>
+              </div>
+              {notificationsLoading ? (
+                <div className="empty-state">Cargando notificaciones...</div>
+              ) : notifications.length === 0 ? (
+                <div className="empty-state">No tienes notificaciones.</div>
+              ) : (
+                <div className="notification-list">
+                  {notifications.map((notification) => (
+                    <article className={`notification-item ${notification.leida ? '' : 'notification-item--unread'}`} key={notification.id}>
+                      <span className={`notification-item__icon notification-item__icon--${notification.tipo.toLowerCase()}`} aria-hidden="true">
+                        {notification.tipo === 'CONFIRMACION' ? '✓' : notification.tipo === 'CANCELACION' ? '!' : '•'}
+                      </span>
+                      <div className="notification-item__content">
+                        <div className="notification-item__heading">
+                          <h3>{notification.titulo}</h3>
+                          {!notification.leida && <span className="notification-unread-label">Nueva</span>}
+                        </div>
+                        <p>{notification.mensaje}</p>
+                        <time dateTime={notification.fecha_creacion}>
+                          {new Intl.DateTimeFormat('es-BO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(notification.fecha_creacion))}
+                        </time>
+                      </div>
+                      {!notification.leida && (
+                        <button type="button" className="notification-read-button" onClick={() => handleMarkNotificationRead(notification.id)}>
+                          Marcar como leída
+                        </button>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {activeSection !== 'historial' && activeSection !== 'notificaciones' && <>
           {activeSection === 'perfil' && (
             <section className="content-panel profile-panel">
               <div className="panel-header">
@@ -440,6 +602,7 @@ export default function App() {
               </button>
             </div>
           </section>
+          </>}
         </main>
       </div>
 

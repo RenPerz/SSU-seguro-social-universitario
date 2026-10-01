@@ -11,7 +11,7 @@ class CitaBase(BaseModel):
     fecha: date
     hora: time
     motivo: str = Field(..., min_length=5, max_length=300)
-    estado: Literal["PENDIENTE", "CONFIRMADA", "CANCELADA"] = "PENDIENTE"
+    estado: Literal["PENDIENTE", "CONFIRMADA", "CANCELADA", "ATENDIDA", "NO_ASISTIO"] = "PENDIENTE"
     lugar: str = Field(default="Seguro Social Universitario", min_length=3, max_length=200)
 
 

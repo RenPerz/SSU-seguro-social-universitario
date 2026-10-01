@@ -1,3 +1,5 @@
+from datetime import date
+
 from app.database.connection import get_db_connection, get_db_status
 from app.database.mock_db import citas_db
 from app.schemas.cita import Cita, CitaCreate, CitaUpdate
@@ -41,6 +43,14 @@ def obtener_todas_las_citas(usuario_id: int | None = None) -> list[Cita]:
     if citas_mysql is not None:
         return citas_mysql
     return [Cita(**cita) for cita in citas_db if usuario_id is None or cita["usuario_id"] == usuario_id]
+
+
+def obtener_historial(usuario_id: int) -> list[Cita]:
+    citas_pasadas = [
+        cita for cita in obtener_todas_las_citas(usuario_id)
+        if cita.fecha < date.today()
+    ]
+    return sorted(citas_pasadas, key=lambda cita: (cita.fecha, cita.hora), reverse=True)
 
 
 def obtener_cita_por_id(cita_id: int, usuario_id: int | None = None) -> Cita | None:

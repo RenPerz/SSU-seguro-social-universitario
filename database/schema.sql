@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS citas (
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
     motivo VARCHAR(300) NOT NULL,
-    estado ENUM('PENDIENTE', 'CONFIRMADA', 'CANCELADA') NOT NULL DEFAULT 'PENDIENTE',
+    estado ENUM('PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'ATENDIDA', 'NO_ASISTIO') NOT NULL DEFAULT 'PENDIENTE',
     lugar VARCHAR(200) NOT NULL DEFAULT 'Seguro Social Universitario',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -68,6 +68,29 @@ CREATE TABLE IF NOT EXISTS citas (
     INDEX idx_citas_usuario (id_usuario),
     INDEX idx_citas_fecha (fecha),
     INDEX idx_citas_estado (estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE citas
+    MODIFY COLUMN estado ENUM('PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'ATENDIDA', 'NO_ASISTIO') NOT NULL DEFAULT 'PENDIENTE';
+
+CREATE TABLE IF NOT EXISTS notificaciones (
+    id_notificacion INT NOT NULL AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    cita_id INT NULL,
+    titulo VARCHAR(150) NOT NULL,
+    mensaje VARCHAR(500) NOT NULL,
+    tipo ENUM('RECORDATORIO', 'CONFIRMACION', 'CANCELACION', 'CAMBIO', 'AVISO') NOT NULL DEFAULT 'AVISO',
+    leida BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_notificacion),
+    CONSTRAINT fk_notificaciones_usuario
+        FOREIGN KEY (usuario_id) REFERENCES usuarios (id_usuario)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_notificaciones_cita
+        FOREIGN KEY (cita_id) REFERENCES citas (id_cita)
+        ON UPDATE CASCADE ON DELETE SET NULL,
+    INDEX idx_notificaciones_usuario_fecha (usuario_id, fecha_creacion),
+    INDEX idx_notificaciones_usuario_leida (usuario_id, leida)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS recordatorios (
