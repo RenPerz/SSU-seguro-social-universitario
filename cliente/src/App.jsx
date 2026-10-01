@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import Header from './components/Header';
 import CatalogoMedicamentos from './components/CatalogoMedicamentos';
 import Derivaciones from './components/Derivaciones';
+import Institucional from './components/Institucional';
+import Inicio from './components/Inicio';
 
 
 export default function App() {
@@ -10,28 +12,10 @@ export default function App() {
   const renderizarContenido = () => {
     switch (seccion) {
       case 'inicio':
-        return (
-          <div>
-            <h2 style={{ fontSize: '22px', color: '#0f172a', marginBottom: '10px' }}>
-              Portal Seguro Social Universitario
-            </h2>
-            <p style={{ color: '#475569', lineHeight: '1.6' }}>
-              Bienvenido a la plataforma web del SSU Cochabamba. Accede rápidamente a tus consultas, reservas y resultados.
-            </p>
-          </div>
-        );
+        return <Inicio />;
 
       case 'institucional':
-        return (
-          <div>
-            <h2 style={{ fontSize: '22px', color: '#0f172a', marginBottom: '10px' }}>
-              Información Institucional
-            </h2>
-            <p style={{ color: '#475569', lineHeight: '1.6' }}>
-              Misión, visión, organigrama y normativas de atención al asegurado.
-            </p>
-          </div>
-        );
+        return  <Institucional />;
 
       case 'horarios':
         return (
@@ -96,14 +80,13 @@ export default function App() {
           </div>
         );
         
-        case 'derivaciones':
-        return <Derivaciones />;
+      case 'derivaciones':
+      return <Derivaciones />;
 
       default:
         return <p>Seleccione una opción del menú.</p>;
 
-      default:
-        return <p>Seleccione una opción del menú.</p>;
+     
     }
   };
 
