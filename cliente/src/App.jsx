@@ -6,6 +6,7 @@ import Institucional from './components/Institucional';
 import Inicio from './components/Inicio';
 import ResultadosLaboratorio from './components/ResultadosLaboratorio';
 import GestionSobreturnosEmergencias from './components/GestionSobreturnosEmergencias';
+import ReservaFichas from './components/ReservaFichas';
 
 export default function App() {
   const [seccion, setSeccion] = useState('inicio');
@@ -31,16 +32,7 @@ export default function App() {
         );
 
       case 'fichas':
-        return (
-          <div>
-            <h2 style={{ fontSize: '22px', color: '#0f172a', marginBottom: '10px' }}>
-              Reserva de Fichas
-            </h2>
-            <p style={{ color: '#475569', lineHeight: '1.6' }}>
-              Sistema de fichaje en línea para consulta externa y especialidades.
-            </p>
-          </div>
-        );
+        return <ReservaFichas />;
 
       case 'medicinas':
         return <CatalogoMedicamentos />;
