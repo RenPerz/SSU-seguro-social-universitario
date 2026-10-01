@@ -7,6 +7,12 @@ build/
 .env
 .env.local
 
+# Entornos y archivos generados por Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

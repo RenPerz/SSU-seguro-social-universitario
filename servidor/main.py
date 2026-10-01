@@ -28,7 +28,11 @@ def obtener_conexion():
 
 @app.get("/")
 def raiz():
-    return {"mensaje": "Servidor backend de SSU en Python funcionando correctamente"}
+    return {"message": "API del Seguro Social Universitario funcionando"}
+
+@app.get("/api/health")
+def verificar_salud():
+    return {"status": "ok"}
 
 @app.get("/api/estado")
 def verificar_estado():
