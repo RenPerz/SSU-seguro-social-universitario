@@ -8,6 +8,7 @@ import ResultadosLaboratorio from './components/ResultadosLaboratorio';
 import GestionSobreturnosEmergencias from './components/GestionSobreturnosEmergencias';
 import ReservaFichas from './components/ReservaFichas';
 import RecetasyOrdenes from './components/Recetas y Ordenes';
+import BajasMedicas from './components/BajasMedicas';
 
 export default function App() {
   const [seccion, setSeccion] = useState('inicio');
