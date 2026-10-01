@@ -1,43 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AZUL = '#003770';
 const ROJO = '#E30613';
 const BLANCO = '#FFFFFF';
 const GRIS_BORDE = '#e2e8f0';
+const API_URL = 'http://127.0.0.1:8000';
 
 export default function GestionSobreturnosEmergencias() {
-  const [registros, setRegistros] = useState([
-    {
-      id: 1,
-      paciente: 'Ana Flores Gutiérrez',
-      ci: '9988776',
-      tipo: 'emergencia',
-      motivo: 'Dolor torácico agudo',
-      medico: 'Dr. Ramírez',
-      hora: '08:15',
-      estado: 'En atención',
-    },
-    {
-      id: 2,
-      paciente: 'Luis Torrico Salazar',
-      ci: '8877665',
-      tipo: 'sobreturno',
-      motivo: 'Control post-operatorio',
-      medico: 'Dra. Vaca',
-      hora: '09:40',
-      estado: 'En espera',
-    },
-    {
-      id: 3,
-      paciente: 'Rosa Mamani Condori',
-      ci: '7766554',
-      tipo: 'emergencia',
-      motivo: 'Fractura de brazo',
-      medico: 'Dr. Ledezma',
-      hora: '10:05',
-      estado: 'Atendido',
-    },
-  ]);
+  const [registros, setRegistros] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
+  const [guardando, setGuardando] = useState(false);
 
   const [form, setForm] = useState({
     paciente: '',
@@ -47,25 +20,61 @@ export default function GestionSobreturnosEmergencias() {
     medico: '',
   });
 
+  // Cargar ingresos del día desde el backend
+  const cargarRegistros = async () => {
+    setCargando(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/sobreturnos`);
+      if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+      const data = await res.json();
+      setRegistros(data);
+    } catch (e) {
+      setError(e.message);
+      setRegistros([]);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarRegistros();
+  }, []);
+
   const manejarCambio = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const agregarRegistro = (e) => {
+  const agregarRegistro = async (e) => {
     e.preventDefault();
     if (!form.paciente || !form.ci || !form.motivo) return;
 
-    const nuevo = {
-      id: registros.length + 1,
-      ...form,
-      hora: new Date().toLocaleTimeString('es-BO', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      estado: form.tipo === 'emergencia' ? 'En atención' : 'En espera',
-    };
-    setRegistros([nuevo, ...registros]);
-    setForm({ paciente: '', ci: '', tipo: 'sobreturno', motivo: '', medico: '' });
+    setGuardando(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/sobreturnos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paciente: form.paciente,
+          ci: form.ci,
+          tipo: form.tipo,
+          motivo: form.motivo,
+          medico: form.medico || null,
+        }),
+      });
+      if (!res.ok) {
+        const detalle = await res.json().catch(() => ({}));
+        throw new Error(detalle.detail || `Error ${res.status}`);
+      }
+      // Recargar la lista para tener los datos reales del servidor
+      await cargarRegistros();
+      setForm({ paciente: '', ci: '', tipo: 'sobreturno', motivo: '', medico: '' });
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setGuardando(false);
+    }
   };
 
   const estiloBadge = (tipo) => ({
@@ -87,6 +96,21 @@ export default function GestionSobreturnosEmergencias() {
       <p style={{ color: '#475569', marginBottom: '20px', lineHeight: '1.6' }}>
         Registro y seguimiento de pacientes sin cita previa y emergencias.
       </p>
+
+      {error && (
+        <div
+          style={{
+            backgroundColor: '#fee2e2',
+            color: '#991b1b',
+            padding: '10px 14px',
+            borderRadius: '6px',
+            marginBottom: '16px',
+            fontSize: '14px',
+          }}
+        >
+          ⚠️ {error}
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
         {/* Formulario */}
@@ -151,18 +175,19 @@ export default function GestionSobreturnosEmergencias() {
 
             <button
               type="submit"
+              disabled={guardando}
               style={{
                 padding: '10px 20px',
-                backgroundColor: ROJO,
+                backgroundColor: guardando ? '#94a3b8' : ROJO,
                 color: BLANCO,
                 border: 'none',
                 borderRadius: '6px',
                 fontWeight: 600,
-                cursor: 'pointer',
+                cursor: guardando ? 'not-allowed' : 'pointer',
                 width: '100%',
               }}
             >
-              Registrar ingreso
+              {guardando ? 'Registrando...' : 'Registrar ingreso'}
             </button>
           </form>
         </div>
@@ -172,9 +197,14 @@ export default function GestionSobreturnosEmergencias() {
           <h3 style={{ color: AZUL, marginBottom: '16px', fontSize: '16px' }}>
             Ingresos del día
           </h3>
-          {registros.length === 0 ? (
+
+          {cargando ? (
+            <p style={{ color: '#64748b', textAlign: 'center', padding: '30px' }}>
+              Cargando ingresos...
+            </p>
+          ) : registros.length === 0 ? (
             <p style={{ color: '#64748b', textAlign: 'center', padding: '30px', fontStyle: 'italic' }}>
-              No hay ingresos registrados.
+              No hay ingresos registrados hoy.
             </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -212,13 +242,6 @@ export default function GestionSobreturnosEmergencias() {
           )}
         </div>
       </div>
-
-      {/* Responsive */}
-      <style>{`
-        @media (max-width: 900px) {
-          .grid-sobreturnos { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 }

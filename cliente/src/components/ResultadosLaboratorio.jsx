@@ -91,19 +91,7 @@ export default function ResultadosLaboratorio() {
             fontFamily: 'inherit',
           }}
         />
-        <button
-          style={{
-            padding: '10px 20px',
-            backgroundColor: AZUL,
-            color: BLANCO,
-            border: 'none',
-            borderRadius: '6px',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          + Nuevo Resultado
-        </button>
+
       </div>
 
       {/* Estados: cargando / error / tabla */}
