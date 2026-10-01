@@ -9,7 +9,11 @@ const menuOpciones = [
   { id: 'notificaciones', label: 'Notificaciones' },
 ];
 
-export default function Header({ activeSection, onSelectSection }) {
+export default function Header({ activeSection, onSelectSection, userRole }) {
+  const options = userRole === 'administrador'
+    ? [...menuOpciones, { id: 'admin', label: 'Administración' }]
+    : menuOpciones;
+
   return (
     <header className="topbar">
       <div className="topbar__brand">
@@ -24,11 +28,11 @@ export default function Header({ activeSection, onSelectSection }) {
       <div className="topbar__location">COCHABAMBA · BOLIVIA</div>
 
       <nav className="topbar__nav" aria-label="Navegación principal">
-        {menuOpciones.map((option) => (
+        {options.map((option) => (
           <button
             key={option.id}
             type="button"
-            className={`topbar__nav-item ${activeSection === option.id ? 'is-active' : ''}`}
+            className={`topbar__nav-item ${activeSection === option.id || (option.id === 'admin' && activeSection.startsWith('admin')) ? 'is-active' : ''}`}
             onClick={() => onSelectSection(option.id)}
           >
             {option.label}

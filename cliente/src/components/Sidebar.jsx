@@ -7,7 +7,11 @@ const menuItems = [
   { id: 'notificaciones', label: 'Notificaciones' },
 ];
 
-export default function Sidebar({ activeItem, onSelect }) {
+export default function Sidebar({ activeItem, onSelect, userRole }) {
+  const items = userRole === 'administrador'
+    ? [...menuItems, { id: 'admin', label: 'Administración' }]
+    : menuItems;
+
   return (
     <aside className="sidebar">
       <div className="sidebar__header">
@@ -16,11 +20,11 @@ export default function Sidebar({ activeItem, onSelect }) {
       </div>
 
       <nav className="sidebar__nav" aria-label="Menú principal">
-        {menuItems.map((item) => (
+        {items.map((item) => (
           <button
             key={item.id}
             type="button"
-            className={`sidebar__item ${activeItem === item.id ? 'is-active' : ''}`}
+            className={`sidebar__item ${activeItem === item.id || (item.id === 'admin' && activeItem.startsWith('admin')) ? 'is-active' : ''}`}
             onClick={() => onSelect(item.id)}
           >
             <span>{item.label}</span>

@@ -3,7 +3,25 @@ import Header from './components/Header';
 import AuthScreen from './components/AuthScreen';
 import Sidebar from './components/Sidebar';
 import StatCard from './components/StatCard';
+import AdminPanel from './components/AdminPanel';
 import { api } from './services/api';
+
+const sectionRoutes = {
+  inicio: '/dashboard',
+  citas: '/citas',
+  recordatorios: '/recordatorios',
+  historial: '/historial',
+  perfil: '/perfil',
+  notificaciones: '/notificaciones',
+  admin: '/admin',
+  'admin-usuarios': '/admin/usuarios',
+  'admin-profesionales': '/admin/profesionales',
+  'admin-especialidades': '/admin/especialidades',
+  'admin-citas': '/admin/citas',
+};
+
+const getSectionFromPath = (pathname) => Object.entries(sectionRoutes).find(([, path]) => path === pathname)?.[0]
+  || (pathname.startsWith('/admin') ? 'admin' : 'inicio');
 
 const initialForm = {
   especialidad: '',
@@ -64,7 +82,7 @@ export default function App() {
       return null;
     }
   });
-  const [activeSection, setActiveSection] = useState('inicio');
+  const [activeSection, setActiveSection] = useState(() => getSectionFromPath(window.location.pathname));
   const [appointments, setAppointments] = useState([]);
   const [history, setHistory] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -150,9 +168,21 @@ export default function App() {
     return () => window.removeEventListener('ssu:unauthorized', handleUnauthorized);
   }, [session]);
 
+  useEffect(() => {
+    const handleNavigation = () => setActiveSection(getSectionFromPath(window.location.pathname));
+    window.addEventListener('popstate', handleNavigation);
+    return () => window.removeEventListener('popstate', handleNavigation);
+  }, []);
+
   const handleAuthenticated = (nextSession) => {
     sessionStorage.setItem('ssu_session', JSON.stringify(nextSession));
     setSession(nextSession);
+  };
+
+  const navigateToSection = (section) => {
+    const path = sectionRoutes[section] || '/dashboard';
+    if (window.location.pathname !== path) window.history.pushState({}, '', path);
+    setActiveSection(section);
   };
 
   const handleLogout = () => {
@@ -305,12 +335,27 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <Header activeSection={activeSection} onSelectSection={setActiveSection} />
+      <Header activeSection={activeSection} onSelectSection={navigateToSection} userRole={session.user.rol} />
 
       <div className="layout-shell">
-        <Sidebar activeItem={activeSection} onSelect={setActiveSection} />
+        <Sidebar activeItem={activeSection} onSelect={navigateToSection} userRole={session.user.rol} />
 
         <main className="main-panel">
+          {activeSection.startsWith('admin') ? (
+            session.user.rol === 'administrador' ? (
+              <AdminPanel
+                activeSection={activeSection}
+                onNavigate={navigateToSection}
+                currentUser={session.user}
+                onLogout={handleLogout}
+              />
+            ) : (
+              <section className="content-panel unauthorized-panel">
+                <h2>Acceso no autorizado</h2>
+                <p>Tu cuenta no tiene permisos para administrar el sistema.</p>
+              </section>
+            )
+          ) : <>
           <section className="hero-panel">
             <div>
               <p className="eyebrow">Sistema universitario</p>
@@ -318,7 +363,7 @@ export default function App() {
               <p className="section-subtitle">Gestión rápida de turnos, recordatorios y atención médica.</p>
             </div>
             <div className="hero-actions">
-              <button type="button" className="primary-button" onClick={() => setActiveSection('citas')}>Ver agenda</button>
+              <button type="button" className="primary-button" onClick={() => navigateToSection('citas')}>Ver agenda</button>
               <button type="button" className="secondary-button secondary-button--dark" onClick={handleLogout}>Cerrar sesión</button>
             </div>
           </section>
@@ -602,6 +647,7 @@ export default function App() {
               </button>
             </div>
           </section>
+          </>}
           </>}
         </main>
       </div>

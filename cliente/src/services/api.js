@@ -54,4 +54,19 @@ export const api = {
   getNotificaciones: () => request('/api/notificaciones'),
   markNotificationRead: (id) => request(`/api/notificaciones/${id}/leida`, { method: 'PATCH' }),
   markAllNotificationsRead: () => request('/api/notificaciones/leidas', { method: 'PATCH' }),
+  getAdminStats: () => request('/api/admin/estadisticas'),
+  getAdminUsers: () => request('/api/admin/usuarios'),
+  setAdminUserState: (id, estado) => request(`/api/admin/usuarios/${id}/estado`, { method: 'PATCH', body: { estado } }),
+  getAdminProfessionals: () => request('/api/admin/profesionales'),
+  createAdminProfessional: (data) => request('/api/admin/profesionales', { method: 'POST', body: data }),
+  updateAdminProfessional: (id, data) => request(`/api/admin/profesionales/${id}`, { method: 'PUT', body: data }),
+  setAdminProfessionalState: (id, estado) => request(`/api/admin/profesionales/${id}/estado`, { method: 'PATCH', body: { estado } }),
+  getAdminSpecialties: () => request('/api/admin/especialidades'),
+  createAdminSpecialty: (data) => request('/api/admin/especialidades', { method: 'POST', body: data }),
+  updateAdminSpecialty: (id, data) => request(`/api/admin/especialidades/${id}`, { method: 'PUT', body: data }),
+  setAdminSpecialtyState: (id, estado) => request(`/api/admin/especialidades/${id}/estado`, { method: 'PATCH', body: { estado } }),
+  getAdminAppointments: (filters = {}) => {
+    const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
+    return request(`/api/admin/citas${params.size ? `?${params}` : ''}`);
+  },
 };

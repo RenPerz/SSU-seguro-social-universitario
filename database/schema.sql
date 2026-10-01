@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS especialidades (
     id_especialidad INT NOT NULL AUTO_INCREMENT,
     nombre VARCHAR(100) NOT NULL,
     descripcion VARCHAR(255) NULL,
+    estado ENUM('ACTIVO', 'INACTIVO') NOT NULL DEFAULT 'ACTIVO',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id_especialidad),
     UNIQUE KEY uk_especialidades_nombre (nombre)
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS profesionales (
     apellidos VARCHAR(100) NOT NULL,
     titulo VARCHAR(120) NULL,
     telefono VARCHAR(30) NULL,
+    matricula VARCHAR(50) NULL,
     estado VARCHAR(30) NOT NULL DEFAULT 'ACTIVO',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id_profesional),
@@ -46,6 +48,26 @@ CREATE TABLE IF NOT EXISTS profesionales (
         ON UPDATE CASCADE ON DELETE RESTRICT,
     INDEX idx_profesionales_especialidad (id_especialidad)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET @admin_schema_sql = IF(
+    (SELECT COUNT(*) FROM information_schema.columns
+     WHERE table_schema = DATABASE() AND table_name = 'especialidades' AND column_name = 'estado') = 0,
+    'ALTER TABLE especialidades ADD COLUMN estado ENUM(''ACTIVO'', ''INACTIVO'') NOT NULL DEFAULT ''ACTIVO''',
+    'SELECT 1'
+);
+PREPARE admin_schema_statement FROM @admin_schema_sql;
+EXECUTE admin_schema_statement;
+DEALLOCATE PREPARE admin_schema_statement;
+
+SET @admin_schema_sql = IF(
+    (SELECT COUNT(*) FROM information_schema.columns
+     WHERE table_schema = DATABASE() AND table_name = 'profesionales' AND column_name = 'matricula') = 0,
+    'ALTER TABLE profesionales ADD COLUMN matricula VARCHAR(50) NULL',
+    'SELECT 1'
+);
+PREPARE admin_schema_statement FROM @admin_schema_sql;
+EXECUTE admin_schema_statement;
+DEALLOCATE PREPARE admin_schema_statement;
 
 CREATE TABLE IF NOT EXISTS citas (
     id_cita INT NOT NULL AUTO_INCREMENT,
