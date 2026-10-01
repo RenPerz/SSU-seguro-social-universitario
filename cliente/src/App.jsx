@@ -13,6 +13,13 @@ const initialForm = {
   motivo: '',
 };
 
+const profileFields = (user = {}) => ({
+  nombres: user.nombres || '',
+  apellidos: user.apellidos || '',
+  email: user.email || '',
+  telefono: user.telefono || '',
+});
+
 const reminderOptions = [
   { value: '24 H', label: '24 horas antes' },
   { value: '12 H', label: '12 horas antes' },
@@ -60,6 +67,8 @@ export default function App() {
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [profileForm, setProfileForm] = useState(() => profileFields(session?.user));
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const loadAppointments = async () => {
     try {
@@ -83,12 +92,28 @@ export default function App() {
     }
   };
 
+  const loadProfile = async () => {
+    try {
+      const profile = await api.getMe();
+      setProfileForm(profileFields(profile));
+      setSession((current) => {
+        if (!current) return current;
+        const next = { ...current, user: profile };
+        sessionStorage.setItem('ssu_session', JSON.stringify(next));
+        return next;
+      });
+    } catch (error) {
+      setErrorMessage(error.message || 'No se pudo cargar el perfil.');
+    }
+  };
+
   useEffect(() => {
     const handleUnauthorized = () => setSession(null);
     window.addEventListener('ssu:unauthorized', handleUnauthorized);
     if (!session) return () => window.removeEventListener('ssu:unauthorized', handleUnauthorized);
     loadAppointments();
     loadReminderSettings();
+    loadProfile();
     return () => window.removeEventListener('ssu:unauthorized', handleUnauthorized);
   }, [session]);
 
@@ -100,6 +125,29 @@ export default function App() {
   const handleLogout = () => {
     sessionStorage.removeItem('ssu_session');
     setSession(null);
+  };
+
+  const handleProfileInput = (event) => {
+    const { name, value } = event.target;
+    setProfileForm((current) => ({ ...current, [name]: value }));
+  };
+
+  const handleProfileSubmit = async (event) => {
+    event.preventDefault();
+    setProfileLoading(true);
+    setMessage('');
+    setErrorMessage('');
+    try {
+      const profile = await api.updateMe(profileForm);
+      const next = { ...session, user: profile };
+      sessionStorage.setItem('ssu_session', JSON.stringify(next));
+      setSession(next);
+      setMessage('✓ Perfil actualizado correctamente.');
+    } catch (error) {
+      setErrorMessage(error.message || '⚠ No se pudo actualizar el perfil.');
+    } finally {
+      setProfileLoading(false);
+    }
   };
 
   const upcomingAppointment = useMemo(() => {
@@ -226,6 +274,49 @@ export default function App() {
 
           {message && <div className="feedback feedback--success">{message}</div>}
           {errorMessage && <div className="feedback feedback--error">{errorMessage}</div>}
+
+          {activeSection === 'perfil' && (
+            <section className="content-panel profile-panel">
+              <div className="panel-header">
+                <div>
+                  <p className="eyebrow eyebrow--dark">Cuenta personal</p>
+                  <h2>Mi perfil</h2>
+                </div>
+                <span className="profile-role">{session.user.rol}</span>
+              </div>
+              <div className="profile-summary">
+                <div className="profile-avatar">{session.user.nombres?.charAt(0)}{session.user.apellidos?.charAt(0)}</div>
+                <div>
+                  <h3>{session.user.nombres} {session.user.apellidos}</h3>
+                  <p>Carnet: {session.user.carnet}</p>
+                  <p>Estado: {session.user.estado}</p>
+                </div>
+              </div>
+              <form className="appointment-form" onSubmit={handleProfileSubmit}>
+                <div className="field-row">
+                  <div className="field-group">
+                    <label htmlFor="profile-nombres">Nombres</label>
+                    <input id="profile-nombres" name="nombres" value={profileForm.nombres} onChange={handleProfileInput} required />
+                  </div>
+                  <div className="field-group">
+                    <label htmlFor="profile-apellidos">Apellidos</label>
+                    <input id="profile-apellidos" name="apellidos" value={profileForm.apellidos} onChange={handleProfileInput} required />
+                  </div>
+                </div>
+                <div className="field-group">
+                  <label htmlFor="profile-email">Email</label>
+                  <input id="profile-email" name="email" type="email" value={profileForm.email} onChange={handleProfileInput} required />
+                </div>
+                <div className="field-group">
+                  <label htmlFor="profile-telefono">Teléfono</label>
+                  <input id="profile-telefono" name="telefono" value={profileForm.telefono} onChange={handleProfileInput} />
+                </div>
+                <button type="submit" className="primary-button" disabled={profileLoading}>
+                  {profileLoading ? 'Guardando...' : 'Editar perfil'}
+                </button>
+              </form>
+            </section>
+          )}
 
           <section className="content-panel">
             <div className="panel-header">

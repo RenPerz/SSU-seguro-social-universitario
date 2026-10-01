@@ -16,7 +16,7 @@ class CitaBase(BaseModel):
 
 
 class CitaCreate(CitaBase):
-    pass
+    usuario_id: int | None = Field(default=None, ge=1)
 
 
 class CitaUpdate(BaseModel):

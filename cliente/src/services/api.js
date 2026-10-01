@@ -39,6 +39,8 @@ async function request(endpoint, { method = 'GET', body } = {}) {
 }
 
 export const api = {
+  getMe: () => request('/api/usuarios/me'),
+  updateMe: (data) => request('/api/usuarios/me', { method: 'PUT', body: data }),
   login: (data) => request('/api/auth/login', { method: 'POST', body: data }),
   register: (data) => request('/api/auth/register', { method: 'POST', body: data }),
   getCitas: () => request('/api/citas'),

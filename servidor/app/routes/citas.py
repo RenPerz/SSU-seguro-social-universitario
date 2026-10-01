@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.auth import get_current_user
 from app.schemas.cita import Cita, CitaCreate, CitaUpdate
 from app.services.cita_service import (
     crear_cita,
@@ -13,13 +14,13 @@ router = APIRouter(prefix="/api", tags=["citas"])
 
 
 @router.get("/citas", response_model=list[Cita])
-def listar_citas() -> list[Cita]:
-    return obtener_todas_las_citas()
+def listar_citas(current_user: dict = Depends(get_current_user)) -> list[Cita]:
+    return obtener_todas_las_citas(int(current_user["sub"]))
 
 
 @router.get("/citas/{cita_id}", response_model=Cita)
-def obtener_cita(cita_id: int) -> Cita:
-    cita = obtener_cita_por_id(cita_id)
+def obtener_cita(cita_id: int, current_user: dict = Depends(get_current_user)) -> Cita:
+    cita = obtener_cita_por_id(cita_id, int(current_user["sub"]))
     if cita is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -29,13 +30,13 @@ def obtener_cita(cita_id: int) -> Cita:
 
 
 @router.post("/citas", response_model=Cita, status_code=status.HTTP_201_CREATED)
-def registrar_cita(cita: CitaCreate) -> Cita:
-    return crear_cita(cita)
+def registrar_cita(cita: CitaCreate, current_user: dict = Depends(get_current_user)) -> Cita:
+    return crear_cita(cita.model_copy(update={"usuario_id": int(current_user["sub"])}))
 
 
 @router.put("/citas/{cita_id}", response_model=Cita)
-def actualizar_cita_endpoint(cita_id: int, cita: CitaUpdate) -> Cita:
-    cita_actualizada = actualizar_cita(cita_id, cita)
+def actualizar_cita_endpoint(cita_id: int, cita: CitaUpdate, current_user: dict = Depends(get_current_user)) -> Cita:
+    cita_actualizada = actualizar_cita(cita_id, cita, int(current_user["sub"]))
     if cita_actualizada is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -45,8 +46,8 @@ def actualizar_cita_endpoint(cita_id: int, cita: CitaUpdate) -> Cita:
 
 
 @router.delete("/citas/{cita_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_cita_endpoint(cita_id: int) -> None:
-    eliminado = eliminar_cita(cita_id)
+def eliminar_cita_endpoint(cita_id: int, current_user: dict = Depends(get_current_user)) -> None:
+    eliminado = eliminar_cita(cita_id, int(current_user["sub"]))
     if not eliminado:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

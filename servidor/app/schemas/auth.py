@@ -32,6 +32,13 @@ class RegisterRequest(BaseModel):
         return value.strip()
 
 
+class UserUpdate(BaseModel):
+    nombres: str = Field(..., min_length=2, max_length=100)
+    apellidos: str = Field(..., min_length=2, max_length=100)
+    email: EmailStr
+    telefono: str | None = Field(default=None, max_length=30)
+
+
 class LoginRequest(BaseModel):
     identifier: str = Field(..., min_length=3, max_length=120)
     password: str = Field(..., min_length=1, max_length=128)

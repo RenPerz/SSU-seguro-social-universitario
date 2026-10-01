@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.auth import get_current_user
 from app.database.connection import get_db_status, get_db_connection
+from app.schemas.auth import UserUpdate
+from app.services.auth_service import get_user_by_id, update_user
 
 router = APIRouter(prefix="/api", tags=["database"])
 
@@ -17,7 +20,7 @@ def db_health():
 
 
 @router.get("/usuarios")
-def listar_usuarios():
+def listar_usuarios(current_user: dict = Depends(get_current_user)):
     db_status = get_db_status()
     if db_status["status"] != "ok":
         raise HTTPException(
@@ -36,3 +39,22 @@ def listar_usuarios():
     finally:
         cursor.close()
         connection.close()
+
+
+@router.get("/usuarios/me")
+def obtener_usuario_actual(current_user: dict = Depends(get_current_user)):
+    user = get_user_by_id(int(current_user["sub"]))
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
+    return user
+
+
+@router.put("/usuarios/me")
+def actualizar_usuario_actual(
+    data: UserUpdate,
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        return update_user(int(current_user["sub"]), data)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
