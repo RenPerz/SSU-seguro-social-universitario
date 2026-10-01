@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.database.connection import get_db_status
 from app.routes.citas import router as citas_router
+from app.routes.db import router as db_router
 
 app = FastAPI(
     title="Seguro Social Universitario API",
@@ -23,6 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(citas_router)
+app.include_router(db_router)
 
 
 @app.get("/")
@@ -37,4 +40,9 @@ def health() -> dict[str, str]:
 
 @app.get("/api/status")
 def status() -> dict[str, str]:
-    return {"status": "active", "framework": "FastAPI"}
+    db_status = get_db_status()
+    return {
+        "status": "active",
+        "framework": "FastAPI",
+        "database": db_status,
+    }
