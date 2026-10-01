@@ -22,3 +22,18 @@ citas_db = [
         "lugar": "Clínica odontológica SSU",
     },
 ]
+
+recordatorios_db = [
+    {
+        "id_recordatorio": 1,
+        "id_cita": 1,
+        "tiempo_recordatorio": "24 H",
+        "activo": True,
+    },
+    {
+        "id_recordatorio": 2,
+        "id_cita": 2,
+        "tiempo_recordatorio": "12 H",
+        "activo": True,
+    },
+]

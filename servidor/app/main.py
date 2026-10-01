@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database.connection import get_db_status
 from app.routes.citas import router as citas_router
 from app.routes.db import router as db_router
+from app.routes.recordatorios import router as recordatorios_router
 
 app = FastAPI(
     title="Seguro Social Universitario API",
@@ -25,6 +26,7 @@ app.add_middleware(
 )
 
 app.include_router(citas_router)
+app.include_router(recordatorios_router)
 app.include_router(db_router)
 
 
