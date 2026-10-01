@@ -97,20 +97,15 @@ def obtener_horarios_doctor(id_doctor: int):
     conexion = obtener_conexion()
     cursor = conexion.cursor(dictionary=True)
     try:
+        # Quitamos el "AND cupos_disponibles > 0" para que devuelva TODOS los turnos
         sql = """
-            SELECT 
-                id_horario, 
-                fecha, 
-                TIME_FORMAT(hora_inicio, '%H:%i') AS hora_inicio, 
-                TIME_FORMAT(hora_fin, '%H:%i') AS hora_fin, 
-                consultorio, 
-                cupos_disponibles
-            FROM horarios_medicos
-            WHERE id_doctor = %s AND cupos_disponibles > 0
-            ORDER BY fecha ASC, hora_inicio ASC
+            SELECT id_horario, fecha, hora_inicio, hora_fin, consultorio, cupos_disponibles 
+            FROM horarios_medicos 
+            WHERE id_doctor = %s
         """
         cursor.execute(sql, (id_doctor,))
-        return cursor.fetchall()
+        horarios = cursor.fetchall()
+        return horarios
     except Exception as e:
         return {"error": str(e)}
     finally:
@@ -159,4 +154,88 @@ def crear_cita_con_horario(datos: CitaCreate):
         conexion.commit()
         cursor.close()
         conexion.close()
+
+
+from pydantic import BaseModel
+
+class DatosEspera(BaseModel):
+    id_paciente: int
+    id_doctor: int
+    id_horario: int
+    motivo: str
+
+@app.post("/api/lista-espera")
+def unirse_lista_espera(datos: DatosEspera):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+    try:
+        sql = """
+            INSERT INTO lista_espera (id_paciente, id_doctor, id_horario, motivo, estado)
+            VALUES (%s, %s, %s, %s, 'esperando')
+        """
+        cursor.execute(sql, (datos.id_paciente, datos.id_doctor, datos.id_horario, datos.motivo))
+        conexion.commit()
+        return {"mensaje": "Te has unido a la lista de espera exitosamente. Te avisaremos si se libera un cupo."}
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        cursor.close()
+        conexion.close()
+
+@app.put("/api/citas/{id_cita}/cancelar")
+def cancelar_cita(id_cita: int):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+    try:
+        # 1. Obtener los datos de la cita a cancelar (para saber su id_doctor e id_horario)
+        cursor.execute("SELECT id_doctor, fecha_hora FROM citas WHERE id_cita = %s", (id_cita,))
+        cita = cursor.fetchone()
         
+        if not cita:
+            return {"error": "Cita no encontrada"}
+
+        # 2. Marcar la cita como cancelada
+        cursor.execute("UPDATE citas SET estado = 'cancelada' WHERE id_cita = %s", (id_cita,))
+
+        # 3. Buscar si hay alguien en la lista de espera para este doctor y fecha/horario
+        # (Asumiendo que relacionas el horario, o puedes buscar por id_doctor y fecha aproximada)
+        sql_espera = """
+            SELECT * FROM lista_espera 
+            WHERE id_doctor = %s AND estado = 'esperando' 
+            ORDER BY creado_en ASC LIMIT 1
+        """
+        cursor.execute(sql_espera, (cita['id_doctor'],))
+        siguiente_en_fila = cursor.fetchone()
+
+        if siguiente_en_fila:
+            # 4A. Si hay alguien esperando, se le asigna la cita automáticamente
+            sql_nueva_cita = """
+                INSERT INTO citas (id_paciente, id_doctor, fecha_hora, motivo, estado)
+                VALUES (%s, %s, %s, %s, 'pendiente')
+            """
+            cursor.execute(sql_nueva_cita, (
+                siguiente_en_fila['id_paciente'], 
+                siguiente_en_fila['id_doctor'], 
+                cita['fecha_hora'], 
+                siguiente_en_fila['motivo']
+            ))
+
+            # Actualizar la lista de espera de esa persona a 'promovido'
+            cursor.execute(
+                "UPDATE lista_espera SET estado = 'promovido' WHERE id_espera = %s", 
+                (siguiente_en_fila['id_espera'],)
+            )
+        else:
+            # 4B. Si NO hay nadie en espera, se libera el cupo sumando 1
+            # (Nota: Asegúrate de tener una forma de vincular el horario exacto si manejas id_horario)
+            pass # Aquí puedes actualizar cupos_disponibles si vinculas el id_horario
+
+        conexion.commit()
+        return {"mensaje": "Cita cancelada exitosamente y cupo reasignado (si había gente en espera)."}
+
+    except Exception as e:
+        conexion.rollback()
+        return {"error": str(e)}
+    finally:
+        cursor.close()
+        conexion.close()

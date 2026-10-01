@@ -58,7 +58,18 @@ export default function ReservaFichas() {
     setError(null);
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/citas-con-horario', {
+      // 1. Buscamos el horario seleccionado actualmente en el arreglo de horarios
+      const horarioActual = horarios.find(h => h.id_horario === parseInt(formData.id_horario));
+      
+      // 2. Verificamos si sus cupos disponibles son 0
+      const sinCupos = horarioActual && horarioActual.cupos_disponibles === 0;
+
+      // 3. Cambiamos la URL dependiendo de si hay cupos o no
+      const url = sinCupos 
+        ? 'http://127.0.0.1:8000/api/lista-espera' 
+        : 'http://127.0.0.1:8000/api/citas-con-horario';
+
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -72,11 +83,12 @@ export default function ReservaFichas() {
       const data = await res.json();
       if (data.error) throw new Error(data.error);
 
-      setMensaje(data.mensaje || '¡Ficha médica reservada con éxito!');
+      // Mensaje dinámico según la acción realizada
+      setMensaje(data.mensaje || (sinCupos ? '¡Te has unido a la lista de espera con éxito!' : '¡Ficha médica reservada con éxito!'));
       setFormData({ id_paciente: 101, id_doctor: '', id_horario: '', motivo: '' });
       setHorarios([]);
     } catch (err) {
-      setError(err.message || 'Error al procesar la reserva.');
+      setError(err.message || 'Error al procesar la solicitud.');
     } finally {
       setCargando(false);
     }
@@ -140,7 +152,6 @@ export default function ReservaFichas() {
               {!formData.id_doctor ? '-- Primero seleccione un médico --' : horarios.length === 0 ? '-- No hay turnos disponibles --' : '-- Seleccione un turno --'}
             </option>
             {horarios.map((h) => {
-              // Protección contra propiedades nulas o formato de hora en objetos timedelta de python
               const horaInicio = h.hora_inicio ? String(h.hora_inicio).slice(0, 5) : '00:00';
               const horaFin = h.hora_fin ? String(h.hora_fin).slice(0, 5) : '00:00';
               return (
@@ -171,6 +182,7 @@ export default function ReservaFichas() {
           type="submit"
           disabled={cargando}
           style={{
+            // Cambiamos el color de fondo si no hay cupos para darle un tono de advertencia/espera (opcional, aquí usa un tono azulado/naranja o el mismo azul)
             backgroundColor: cargando ? '#94a3b8' : '#0284c7',
             color: '#ffffff',
             padding: '12px',
@@ -181,7 +193,12 @@ export default function ReservaFichas() {
             marginTop: '8px'
           }}
         >
-          {cargando ? 'Procesando reserva...' : 'Confirmar Reserva de Ficha'}
+          {cargando ? 'Procesando...' : (() => {
+            const hSel = horarios.find(h => h.id_horario === parseInt(formData.id_horario));
+            return hSel && hSel.cupos_disponibles === 0 
+              ? 'Unirse a la lista de espera' 
+              : 'Confirmar Reserva de Ficha';
+          })()}
         </button>
       </form>
     </div>
