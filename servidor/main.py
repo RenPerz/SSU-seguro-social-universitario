@@ -311,3 +311,35 @@ def obtener_bajas_medicas():
         if 'conexion' in locals() and conexion.is_connected():
             cursor.close()
             conexion.close()  
+
+
+@app.get("/api/horarios") 
+def obtener_horarios():
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor(dictionary=True) 
+
+        sql = """SELECT 
+                    id,
+                    especialidad,
+                    doctor,
+                    consultorio,
+                    dias,
+                    horario,
+                    turno,
+                    fichas_disponibles,
+                    estado
+                FROM horarios_disponibilidad"""
+
+        cursor.execute(sql)
+        resultados = cursor.fetchall()
+
+        return resultados
+
+    except Exception as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=f"Error BD: {e}")
+    finally:
+        if 'conexion' in locals() and conexion.is_connected():
+            cursor.close()
+            conexion.close() 
