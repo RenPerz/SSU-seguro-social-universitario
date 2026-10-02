@@ -15,6 +15,15 @@ TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "120"))
 password_hasher = PasswordHash.recommended()
 
 
+def get_jwt_secret() -> str:
+    if len(JWT_SECRET.encode("utf-8")) < 32:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Autenticación no disponible. Configura JWT_SECRET con al menos 32 bytes aleatorios.",
+        )
+    return JWT_SECRET
+
+
 def _public_user(record: dict) -> UserPublic:
     return UserPublic(
         id=int(record["id"]),
@@ -29,8 +38,7 @@ def _public_user(record: dict) -> UserPublic:
 
 
 def _create_token(user: UserPublic) -> str:
-    if not JWT_SECRET:
-        raise RuntimeError("JWT_SECRET no está configurado en el entorno.")
+    secret = get_jwt_secret()
     now = datetime.now(timezone.utc)
     payload = {
         "sub": str(user.id),
@@ -38,7 +46,7 @@ def _create_token(user: UserPublic) -> str:
         "iat": now,
         "exp": now + timedelta(minutes=TOKEN_EXPIRE_MINUTES),
     }
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return jwt.encode(payload, secret, algorithm=JWT_ALGORITHM)
 
 
 def _find_mock(identifier: str) -> dict | None:

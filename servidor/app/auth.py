@@ -4,7 +4,7 @@ import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.services.auth_service import JWT_ALGORITHM, JWT_SECRET
+from app.services.auth_service import JWT_ALGORITHM, get_jwt_secret
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -15,7 +15,7 @@ def get_current_user(
     if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Autenticación requerida.")
     try:
-        return jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return jwt.decode(credentials.credentials, get_jwt_secret(), algorithms=[JWT_ALGORITHM])
     except jwt.PyJWTError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sesión inválida o expirada.") from exc
 

@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+const genericErrorMessage = 'No pudimos completar la operación. Intenta nuevamente.';
 
 async function request(endpoint, { method = 'GET', body } = {}) {
   const session = sessionStorage.getItem('ssu_session');
@@ -18,21 +19,31 @@ async function request(endpoint, { method = 'GET', body } = {}) {
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+  } catch {
+    throw new Error(genericErrorMessage);
+  }
 
   if (response.status === 204) {
     return null;
   }
 
-  const payload = await response.json();
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    if (response.ok) return null;
+  }
 
   if (!response.ok) {
     if (response.status === 401) {
       sessionStorage.removeItem('ssu_session');
       window.dispatchEvent(new Event('ssu:unauthorized'));
     }
-    const detail = typeof payload.detail === 'string' ? payload.detail : 'No se pudo completar la solicitud.';
-    throw new Error(detail);
+    const detail = typeof payload?.detail === 'string' ? payload.detail : genericErrorMessage;
+    throw new Error(response.status >= 500 ? genericErrorMessage : detail);
   }
 
   return payload;

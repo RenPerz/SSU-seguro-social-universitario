@@ -52,6 +52,11 @@ def registrar_cita(cita: CitaCreate, current_user: dict = Depends(get_current_us
 
 @router.put("/citas/{cita_id}", response_model=Cita)
 def actualizar_cita_endpoint(cita_id: int, cita: CitaUpdate, current_user: dict = Depends(get_current_user)) -> Cita:
+    if cita.model_dump(exclude_unset=True) != {"estado": "CANCELADA"}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo puedes cancelar tus propias citas.",
+        )
     usuario_id = int(current_user["sub"])
     cita_anterior = obtener_cita_por_id(cita_id, usuario_id)
     cita_actualizada = actualizar_cita(cita_id, cita, usuario_id)

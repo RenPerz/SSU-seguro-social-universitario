@@ -88,7 +88,7 @@ export default function App() {
   const [notifications, setNotifications] = useState([]);
   const [historyFilter, setHistoryFilter] = useState('TODAS');
   const [historyOrder, setHistoryOrder] = useState('DESC');
-  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsLoading, setNotificationsLoading] = useState(() => Boolean(session?.user));
   const [selectedFilter, setSelectedFilter] = useState('TODAS');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [formData, setFormData] = useState(initialForm);
@@ -109,16 +109,7 @@ export default function App() {
     }
   };
 
-  const loadHistory = async () => {
-    try {
-      setHistory(await api.getHistorial());
-    } catch (error) {
-      setErrorMessage(error.message || 'No se pudo cargar el historial.');
-    }
-  };
-
   const loadNotifications = async () => {
-    setNotificationsLoading(true);
     try {
       setNotifications(await api.getNotificaciones());
     } catch (error) {
@@ -128,45 +119,45 @@ export default function App() {
     }
   };
 
-  const loadReminderSettings = async () => {
-    try {
-      const data = await api.getRecordatorios();
-      if (data && data.length > 0) {
-        const settings = data[0];
-        setReminderEnabled(Boolean(settings.activo));
-        setReminderValue(settings.tiempo_recordatorio || '24 H');
-      }
-    } catch (error) {
-      setErrorMessage(error.message || 'No se pudieron cargar los recordatorios.');
-    }
-  };
-
-  const loadProfile = async () => {
-    try {
-      const profile = await api.getMe();
-      setProfileForm(profileFields(profile));
-      setSession((current) => {
-        if (!current) return current;
-        const next = { ...current, user: profile };
-        sessionStorage.setItem('ssu_session', JSON.stringify(next));
-        return next;
-      });
-    } catch (error) {
-      setErrorMessage(error.message || 'No se pudo cargar el perfil.');
-    }
-  };
+  const currentUserId = session?.user?.id;
 
   useEffect(() => {
     const handleUnauthorized = () => setSession(null);
     window.addEventListener('ssu:unauthorized', handleUnauthorized);
-    if (!session) return () => window.removeEventListener('ssu:unauthorized', handleUnauthorized);
-    loadAppointments();
-    loadHistory();
-    loadNotifications();
-    loadReminderSettings();
-    loadProfile();
+    if (!currentUserId) return () => window.removeEventListener('ssu:unauthorized', handleUnauthorized);
+
+    api.getCitas()
+      .then(setAppointments)
+      .catch((error) => setErrorMessage(error.message || 'No se pudieron cargar las citas.'));
+    api.getHistorial()
+      .then(setHistory)
+      .catch((error) => setErrorMessage(error.message || 'No se pudo cargar el historial.'));
+    api.getNotificaciones()
+      .then(setNotifications)
+      .catch((error) => setErrorMessage(error.message || 'No se pudieron cargar las notificaciones.'))
+      .finally(() => setNotificationsLoading(false));
+    api.getRecordatorios()
+      .then((data) => {
+        if (data.length > 0) {
+          setReminderEnabled(Boolean(data[0].activo));
+          setReminderValue(data[0].tiempo_recordatorio || '24 H');
+        }
+      })
+      .catch((error) => setErrorMessage(error.message || 'No se pudieron cargar los recordatorios.'));
+    api.getMe()
+      .then((profile) => {
+        setProfileForm(profileFields(profile));
+        setSession((current) => {
+          if (!current) return current;
+          const next = { ...current, user: profile };
+          sessionStorage.setItem('ssu_session', JSON.stringify(next));
+          return next;
+        });
+      })
+      .catch((error) => setErrorMessage(error.message || 'No se pudo cargar el perfil.'));
+
     return () => window.removeEventListener('ssu:unauthorized', handleUnauthorized);
-  }, [session]);
+  }, [currentUserId]);
 
   useEffect(() => {
     const handleNavigation = () => setActiveSection(getSectionFromPath(window.location.pathname));
@@ -176,6 +167,7 @@ export default function App() {
 
   const handleAuthenticated = (nextSession) => {
     sessionStorage.setItem('ssu_session', JSON.stringify(nextSession));
+    setNotificationsLoading(true);
     setSession(nextSession);
   };
 

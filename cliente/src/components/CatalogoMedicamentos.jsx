@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function CatalogoMedicamentos() {
   const [busqueda, setBusqueda] = useState('');
   const [medicamentos, setMedicamentos] = useState([]);
-  const [cargando, setCargando] = useState(false);
+  const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
 
   const consultarMedicamentos = async (termino = '') => {
-    setCargando(true);
-    setError(null);
     try {
       const res = await fetch(`http://localhost:8000/api/medicamentos/buscar?q=${encodeURIComponent(termino)}`);
       if (!res.ok) throw new Error('Error al conectar con el servidor backend');
@@ -22,11 +20,22 @@ export default function CatalogoMedicamentos() {
   };
 
   useEffect(() => {
-    consultarMedicamentos('');
+    let active = true;
+    fetch(`http://localhost:8000/api/medicamentos/buscar?q=`)
+      .then((res) => {
+        if (!res.ok) throw new Error('No se pudieron cargar los medicamentos.');
+        return res.json();
+      })
+      .then((data) => { if (active) setMedicamentos(data); })
+      .catch((err) => { if (active) setError(err.message); })
+      .finally(() => { if (active) setCargando(false); });
+    return () => { active = false; };
   }, []);
 
   const handleBuscar = (e) => {
     e.preventDefault();
+    setCargando(true);
+    setError(null);
     consultarMedicamentos(busqueda);
   };
 

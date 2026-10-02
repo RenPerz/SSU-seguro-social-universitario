@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.auth import get_current_user
+from app.auth import get_current_user, require_roles
 from app.database.connection import get_db_status, get_db_connection
 from app.schemas.auth import UserUpdate
 from app.services.auth_service import get_user_by_id, update_user
@@ -19,8 +19,8 @@ def db_health():
     return status_data
 
 
-@router.get("/usuarios")
-def listar_usuarios(current_user: dict = Depends(get_current_user)):
+@router.get("/usuarios", dependencies=[Depends(require_roles("administrador"))])
+def listar_usuarios():
     db_status = get_db_status()
     if db_status["status"] != "ok":
         raise HTTPException(
