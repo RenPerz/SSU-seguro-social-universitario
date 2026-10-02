@@ -29,12 +29,16 @@ recordatorios_db = [
         "id_cita": 1,
         "tiempo_recordatorio": "24 H",
         "activo": True,
+        "fecha_programada": "2026-10-06T10:30:00",
+        "enviado": False,
     },
     {
         "id_recordatorio": 2,
         "id_cita": 2,
         "tiempo_recordatorio": "12 H",
         "activo": True,
+        "fecha_programada": "2026-10-11T09:00:00",
+        "enviado": False,
     },
 ]
 

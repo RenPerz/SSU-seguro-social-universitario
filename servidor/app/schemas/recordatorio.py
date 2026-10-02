@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -21,6 +22,8 @@ class RecordatorioUpdate(BaseModel):
 
 class Recordatorio(RecordatorioBase):
     id_recordatorio: int = Field(..., ge=1)
+    fecha_programada: datetime | None = None
+    enviado: bool = False
 
     model_config = {
         "from_attributes": True,

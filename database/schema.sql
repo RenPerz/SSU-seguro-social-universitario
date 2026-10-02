@@ -120,6 +120,8 @@ CREATE TABLE IF NOT EXISTS recordatorios (
     id_cita INT NOT NULL,
     tiempo_recordatorio ENUM('24 H', '12 H', '1 H') NOT NULL DEFAULT '24 H',
     activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_programada DATETIME NULL,
+    enviado BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id_recordatorio),
@@ -129,6 +131,12 @@ CREATE TABLE IF NOT EXISTS recordatorios (
     INDEX idx_recordatorios_cita (id_cita),
     INDEX idx_recordatorios_activo (activo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE recordatorios
+    ADD COLUMN IF NOT EXISTS fecha_programada DATETIME NULL;
+
+ALTER TABLE recordatorios
+    ADD COLUMN IF NOT EXISTS enviado BOOLEAN NOT NULL DEFAULT FALSE;
 
 INSERT INTO especialidades (nombre, descripcion) VALUES
 ('Medicina General', 'Atención primaria y control general de salud'),

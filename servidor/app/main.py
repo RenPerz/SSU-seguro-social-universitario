@@ -1,3 +1,6 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,11 +11,23 @@ from app.routes.db import router as db_router
 from app.routes.recordatorios import router as recordatorios_router
 from app.routes.notificaciones import router as notificaciones_router
 from app.routes.admin import router as admin_router
+from app.services.recordatorio_scheduler import ejecutar_revision_recordatorios
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    scheduler_task = asyncio.create_task(ejecutar_revision_recordatorios())
+    try:
+        yield
+    finally:
+        scheduler_task.cancel()
+        await asyncio.gather(scheduler_task, return_exceptions=True)
 
 app = FastAPI(
     title="Seguro Social Universitario API",
     version="0.1.0",
     description="API inicial para la gestión de citas y recordatorios del sistema SSU.",
+    lifespan=lifespan,
 )
 
 app.add_middleware(

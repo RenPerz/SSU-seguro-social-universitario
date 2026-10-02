@@ -522,6 +522,91 @@ img {
   margin: 0;
 }
 
+.reminder-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.next-appointment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #bae6fd;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #effaff, #f5fbff);
+}
+
+.next-appointment h3,
+.next-appointment p {
+  margin: 0;
+}
+
+.next-appointment h3 {
+  color: var(--primary-900);
+  font-size: 1.35rem;
+}
+
+.next-appointment p:not(.eyebrow) {
+  margin-top: 0.35rem;
+  color: var(--neutral-700);
+}
+
+.reminder-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.reminder-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.1rem;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+
+.reminder-card__info h3,
+.reminder-card__info p,
+.reminder-card__info span,
+.reminder-card__info small {
+  margin: 0;
+}
+
+.reminder-card__info h3 {
+  margin-top: 0.25rem;
+  color: var(--primary-900);
+}
+
+.reminder-card__info p:not(.appointment-card__date),
+.reminder-card__info span,
+.reminder-card__info small {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--neutral-500);
+}
+
+.reminder-card__form {
+  display: grid;
+  min-width: 220px;
+  gap: 0.65rem;
+}
+
+.reminder-card__form label {
+  color: var(--neutral-700);
+  font-weight: 600;
+}
+
+.reminder-card__form select {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 0.8rem;
+  padding: 0.7rem;
+  background: white;
+}
+
 .profile-summary p {
   margin-top: 0.35rem;
   color: var(--neutral-500);
@@ -1087,5 +1172,16 @@ img {
   .notification-read-button {
     grid-column: 2;
     text-align: left;
+  }
+
+  .next-appointment,
+  .reminder-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .reminder-card__form {
+    width: 100%;
+    min-width: 0;
   }
 }

@@ -4,6 +4,7 @@ import AuthScreen from './components/AuthScreen';
 import Sidebar from './components/Sidebar';
 import StatCard from './components/StatCard';
 import AdminPanel from './components/AdminPanel';
+import RecordatorioCitas from './components/RecordatorioCitas';
 import { api } from './services/api';
 
 const sectionRoutes = {
@@ -86,6 +87,7 @@ export default function App() {
   const [appointments, setAppointments] = useState([]);
   const [history, setHistory] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [reminders, setReminders] = useState([]);
   const [historyFilter, setHistoryFilter] = useState('TODAS');
   const [historyOrder, setHistoryOrder] = useState('DESC');
   const [notificationsLoading, setNotificationsLoading] = useState(() => Boolean(session?.user));
@@ -99,6 +101,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [profileForm, setProfileForm] = useState(() => profileFields(session?.user));
   const [profileLoading, setProfileLoading] = useState(false);
+  const [remindersLoading, setRemindersLoading] = useState(false);
+  const [savingReminderId, setSavingReminderId] = useState(null);
 
   const loadAppointments = async () => {
     try {
@@ -136,14 +140,17 @@ export default function App() {
       .then(setNotifications)
       .catch((error) => setErrorMessage(error.message || 'No se pudieron cargar las notificaciones.'))
       .finally(() => setNotificationsLoading(false));
+    setRemindersLoading(true);
     api.getRecordatorios()
       .then((data) => {
+        setReminders(data);
         if (data.length > 0) {
           setReminderEnabled(Boolean(data[0].activo));
           setReminderValue(data[0].tiempo_recordatorio || '24 H');
         }
       })
-      .catch((error) => setErrorMessage(error.message || 'No se pudieron cargar los recordatorios.'));
+      .catch((error) => setErrorMessage(error.message || 'No se pudieron cargar los recordatorios.'))
+      .finally(() => setRemindersLoading(false));
     api.getMe()
       .then((profile) => {
         setProfileForm(profileFields(profile));
@@ -276,22 +283,47 @@ export default function App() {
     }
   };
 
-  const handleSaveReminder = async () => {
+  const handleSaveReminder = async (appointmentId, form) => {
+    const formData = new FormData(form);
+    const reminder = reminders.find((item) => item.id_cita === appointmentId);
+    const payload = {
+      id_cita: appointmentId,
+      tiempo_recordatorio: formData.get('tiempo_recordatorio'),
+      activo: formData.get('activo') === 'on',
+    };
+    setSavingReminderId(appointmentId);
     try {
-      const settings = await api.getRecordatorios();
-      const payload = {
-        id_cita: upcomingAppointment?.id || 1,
-        tiempo_recordatorio: reminderValue,
-        activo: reminderEnabled,
-      };
+      const updated = reminder
+        ? await api.updateRecordatorio(reminder.id_recordatorio, payload)
+        : await api.createRecordatorio(payload);
+      setReminders((current) => reminder
+        ? current.map((item) => item.id_recordatorio === updated.id_recordatorio ? updated : item)
+        : [...current, updated]);
+      setReminderEnabled(payload.activo);
+      setReminderValue(payload.tiempo_recordatorio);
+      setMessage('✓ Recordatorio actualizado correctamente.');
+      await loadNotifications();
+    } catch (error) {
+      setErrorMessage(error.message || '⚠ No se pudo guardar la configuración de recordatorios.');
+    } finally {
+      setSavingReminderId(null);
+    }
+  };
 
-      if (settings && settings.length > 0) {
-        await api.updateRecordatorio(settings[0].id_recordatorio, payload);
-      } else {
-        await api.createRecordatorio(payload);
+  const handleSaveLegacyReminder = async () => {
+    const appointment = upcomingAppointment;
+    try {
+      if (appointment) {
+        const existing = reminders.find((item) => item.id_cita === appointment.id);
+        const payload = { id_cita: appointment.id, tiempo_recordatorio: reminderValue, activo: reminderEnabled };
+        if (existing) {
+          await api.updateRecordatorio(existing.id_recordatorio, payload);
+        } else {
+          await api.createRecordatorio(payload);
+        }
+        setMessage('✓ Recordatorio actualizado correctamente.');
+        await loadNotifications();
       }
-
-      setMessage('✓ Recordatorios guardados correctamente.');
     } catch (error) {
       setErrorMessage(error.message || '⚠ No se pudo guardar la configuración de recordatorios.');
     }
@@ -473,7 +505,17 @@ export default function App() {
             </section>
           )}
 
-          {activeSection !== 'historial' && activeSection !== 'notificaciones' && <>
+          {activeSection === 'recordatorios' && (
+            <RecordatorioCitas
+              appointments={appointments}
+              reminders={reminders}
+              loading={remindersLoading}
+              savingId={savingReminderId}
+              onSave={handleSaveReminder}
+            />
+          )}
+
+          {activeSection !== 'historial' && activeSection !== 'notificaciones' && activeSection !== 'recordatorios' && <>
           {activeSection === 'perfil' && (
             <section className="content-panel profile-panel">
               <div className="panel-header">
@@ -634,7 +676,7 @@ export default function App() {
                 </select>
               </div>
 
-              <button type="button" className="primary-button primary-button--full" onClick={handleSaveReminder}>
+              <button type="button" className="primary-button primary-button--full" onClick={handleSaveLegacyReminder}>
                 Guardar recordatorio
               </button>
             </div>
