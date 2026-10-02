@@ -9,6 +9,7 @@ import GestionSobreturnosEmergencias from './components/GestionSobreturnosEmerge
 import ReservaFichas from './components/ReservaFichas';
 import RecetasyOrdenes from './components/Recetas y Ordenes';
 import BajasMedicas from './components/BajasMedicas';
+import HorariosDisponibilidad from './components/HorariosDisponibilidad';
 
 export default function App() {
   const [seccion, setSeccion] = useState('inicio');
@@ -22,16 +23,8 @@ export default function App() {
         return <Institucional />;
 
       case 'horarios':
-        return (
-          <div>
-            <h2 style={{ fontSize: '22px', color: '#0f172a', marginBottom: '10px' }}>
-              Horarios y Disponibilidad
-            </h2>
-            <p style={{ color: '#475569', lineHeight: '1.6' }}>
-              Cronograma de atención médica, turnos de guardia y disponibilidad de especialistas.
-            </p>
-          </div>
-        );
+        return <HorariosDisponibilidad />;
+        
 
       case 'fichas':
         return <ReservaFichas />;
