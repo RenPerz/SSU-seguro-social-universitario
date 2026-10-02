@@ -272,10 +272,6 @@ def obtener_derivaciones_paciente(id_paciente: int):
             conexion.close()
 
     
-    finally:
-        cursor.close()
-        conexion.close()
-
 
 @app.get("/api/bajas-medicas")
 def obtener_bajas_medicas():

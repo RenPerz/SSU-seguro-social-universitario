@@ -9,7 +9,7 @@ def obtener_conexion():
     conexion = mysql.connector.connect(
         host=os.getenv("DB_HOST", "localhost"),
         user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASSWORD", "sisinfo2"),
+        password=os.getenv("DB_PASSWORD", "12345"),
         database=os.getenv("DB_NAME", "ssu_db"),
         autocommit=True
     )
