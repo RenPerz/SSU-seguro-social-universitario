@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import Header from './components/Header';
-import AuthScreen from './components/AuthScreen';
 import Sidebar from './components/Sidebar';
 import StatCard from './components/StatCard';
 import AdminPanel from './components/AdminPanel';
@@ -83,6 +82,14 @@ export default function App() {
       return null;
     }
   });
+  const activeUser = session?.user || {
+    id: null,
+    nombres: 'Usuario',
+    apellidos: '',
+    carnet: '',
+    rol: 'estudiante',
+    estado: 'SIN SESION',
+  };
   const [activeSection, setActiveSection] = useState(() => getSectionFromPath(window.location.pathname));
   const [appointments, setAppointments] = useState([]);
   const [history, setHistory] = useState([]);
@@ -172,12 +179,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleNavigation);
   }, []);
 
-  const handleAuthenticated = (nextSession) => {
-    sessionStorage.setItem('ssu_session', JSON.stringify(nextSession));
-    setNotificationsLoading(true);
-    setSession(nextSession);
-  };
-
   const navigateToSection = (section) => {
     const path = sectionRoutes[section] || '/dashboard';
     if (window.location.pathname !== path) window.history.pushState({}, '', path);
@@ -263,10 +264,6 @@ export default function App() {
       setLoading(false);
     }
   };
-
-  if (!session?.user) {
-    return <AuthScreen onAuthenticated={handleAuthenticated} />;
-  }
 
   const handleCancel = async (appointmentId) => {
     const confirmCancel = window.confirm('¿Estás seguro de que deseas cancelar esta cita?');
@@ -359,18 +356,18 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <Header activeSection={activeSection} onSelectSection={navigateToSection} userRole={session.user.rol} />
+      <Header activeSection={activeSection} onSelectSection={navigateToSection} userRole={activeUser.rol} />
 
       <div className="layout-shell">
-        <Sidebar activeItem={activeSection} onSelect={navigateToSection} userRole={session.user.rol} />
+        <Sidebar activeItem={activeSection} onSelect={navigateToSection} userRole={activeUser.rol} />
 
         <main className="main-panel">
           {activeSection.startsWith('admin') ? (
-            session.user.rol === 'administrador' ? (
+            activeUser.rol === 'administrador' ? (
               <AdminPanel
                 activeSection={activeSection}
                 onNavigate={navigateToSection}
-                currentUser={session.user}
+                currentUser={activeUser}
                 onLogout={handleLogout}
               />
             ) : (
@@ -383,7 +380,7 @@ export default function App() {
           <section className="hero-panel">
             <div>
               <p className="eyebrow">Sistema universitario</p>
-              <h1>Hola, {session.user.nombres}</h1>
+              <h1>Hola, {activeUser.nombres}</h1>
               <p className="section-subtitle">Gestión rápida de turnos, recordatorios y atención médica.</p>
             </div>
             <div className="hero-actions">
@@ -523,14 +520,14 @@ export default function App() {
                   <p className="eyebrow eyebrow--dark">Cuenta personal</p>
                   <h2>Mi perfil</h2>
                 </div>
-                <span className="profile-role">{session.user.rol}</span>
+                <span className="profile-role">{activeUser.rol}</span>
               </div>
               <div className="profile-summary">
-                <div className="profile-avatar">{session.user.nombres?.charAt(0)}{session.user.apellidos?.charAt(0)}</div>
+                <div className="profile-avatar">{activeUser.nombres?.charAt(0)}{activeUser.apellidos?.charAt(0)}</div>
                 <div>
-                  <h3>{session.user.nombres} {session.user.apellidos}</h3>
-                  <p>Carnet: {session.user.carnet}</p>
-                  <p>Estado: {session.user.estado}</p>
+                  <h3>{activeUser.nombres} {activeUser.apellidos}</h3>
+                  <p>Carnet: {activeUser.carnet}</p>
+                  <p>Estado: {activeUser.estado}</p>
                 </div>
               </div>
               <form className="appointment-form" onSubmit={handleProfileSubmit}>
